@@ -13,6 +13,6 @@ public class AuthorController {
             @RequestParam String provider,
             @PathVariable String author
     ){
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

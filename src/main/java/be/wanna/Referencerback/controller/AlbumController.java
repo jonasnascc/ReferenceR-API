@@ -17,16 +17,16 @@ public class AlbumController {
             @RequestParam String provider,
             @PathVariable String author
     ){
-        return new ResponseEntity<>(service.getAuthorAlbums(author, provider), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(service.getAuthorAlbums(author, provider), HttpStatus.OK);
     }
 
-    @GetMapping("{author}/album/{albumId}")
-    public ResponseEntity<?> getAuthorAlbum(
-            @RequestParam String provider,
-            @PathVariable String author,
-            @PathVariable String albumId
-    ){
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
-    }
+//    @GetMapping("{author}/albums/{albumId}")
+//    public ResponseEntity<?> getAuthorAlbum(
+//            @RequestParam String provider,
+//            @PathVariable String author,
+//            @PathVariable String albumId
+//    ){
+//        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+//    }
 
 }

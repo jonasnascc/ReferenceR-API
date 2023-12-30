@@ -1,5 +1,6 @@
 package be.wanna.Referencerback.entity;
 
+import be.wanna.Referencerback.entity.connection.Connection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
@@ -26,20 +27,27 @@ public class Provider {
 
     private String loginPath;
 
-//    @OneToMany(mappedBy = "provider")
-//    private List<Connection> connections;
+    @OneToMany(mappedBy = "provider")
+    private List<Connection> connections;
 
     @OneToMany(mappedBy = "provider")
     private List<Album> album;
 
-//    @ManyToOne
-//    private User user;
+    @ManyToOne
+    private User user;
 
-//    public Provider(String name, String url, String loginUrl, String loginPath, User user) {
-//        this.name = name;
-//        this.url = url;
-//        this.loginUrl = loginUrl;
-//        this.loginPath = loginPath;
-//        this.user = user;
-//    }
+    public Provider(String name, String url, String loginUrl, String loginPath, User user) {
+        this.name = name;
+        this.url = url;
+        this.loginUrl = loginUrl;
+        this.loginPath = loginPath;
+        this.user = user;
+    }
+
+    public Provider(String name, String url, String loginUrl, String loginPath) {
+        this.name = name;
+        this.url = url;
+        this.loginUrl = loginUrl;
+        this.loginPath = loginPath;
+    }
 }
