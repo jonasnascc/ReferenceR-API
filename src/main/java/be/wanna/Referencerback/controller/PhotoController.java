@@ -23,4 +23,6 @@ public class PhotoController {
             ){
         return new ResponseEntity<>(service.listPhotos(author, albumId, page, limit, provider, dto), HttpStatus.OK);
     }
+
+
 }

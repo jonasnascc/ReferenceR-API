@@ -3,17 +3,16 @@ package be.wanna.Referencerback.service.scraping;
 import be.wanna.Referencerback.dto.AlbumDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationAlbumDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationDTO;
+import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.mediatype.MediaTypeDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.offset.OffSetDTO;
-import be.wanna.Referencerback.dto.deviantArt.deviation.offset.ResultDTO;
 import be.wanna.Referencerback.entity.Author;
-import be.wanna.Referencerback.entity.Photo;
-import be.wanna.Referencerback.entity.Provider;
+import be.wanna.Referencerback.entity.photo.Deviation;
+import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.User;
-import be.wanna.Referencerback.repository.UserRepository;
+import be.wanna.Referencerback.entity.photo.PhotoType;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.AllArgsConstructor;
-import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -88,7 +87,7 @@ public abstract class DeviantArtService {
     }
 
     public static Set<Photo> listAlbumPhotosByPage(String albumId, String authorName, int number, int limitByPage, User user){
-        return getAlbumDeviations(albumId, authorName, number, limitByPage, user).stream().map(DeviantArtService::getPhoto).collect(Collectors.toSet());
+        return getAlbumDeviations(albumId, authorName, number, limitByPage, user).stream().map(DeviantArtService::getDeviation).collect(Collectors.toSet());
     }
 
     private static Set<DeviationDTO> getAlbumDeviations(String albumId, String authorName, Integer page, Integer limitByPage, User user){
@@ -248,18 +247,31 @@ public abstract class DeviantArtService {
         return new AlbumDTO(code, name, url, author, DEVIANTART, photosNum);
     }
 
-    private static Photo getPhoto(DeviationDTO dto){
+    private static Deviation getDeviation(DeviationDTO dto){
         Author author = new Author();
         author.setName(dto.getAuthor().getUsername());
         author.setProfileUrl(DEVIANT_ART_URL + author.getName());
 
-        Photo photo = new Photo();
-        photo.setId(dto.getDeviationId());
-        photo.setUrl(dto.getUrl());
-        photo.setTitle(dto.getTitle());
-        photo.setMature(dto.isMature());
+        Deviation deviation = new Deviation();
+        deviation.setId(dto.getDeviationId());
+        deviation.setDeviationPage(dto.getUrl());
+        deviation.setTitle(dto.getTitle());
+        deviation.setMature(dto.isMature());
+        deviation.setMatureLevel(dto.getMatureLevel());
+        deviation.setLicense(dto.getLicense());
+        deviation.setType(PhotoType.DEVIATION);
 
-        return photo;
+//        String url = dto.getMedia().getBaseUri();
+//        try{
+//            String prettyName = dto.getMedia().getPrettyName();
+//            Optional<MediaTypeDTO> mediaType = dto.getMedia().getTypes().stream().filter(type -> type.getT().contains("fullview")).findAny();
+//            if(mediaType.isPresent()){
+//                url = url.concat( mediaType.get().getC().replace("<prettyName>", prettyName) );
+//            }
+//            deviation.setUrl(url);
+//        } catch (NullPointerException ignored){}
+
+        return deviation;
     }
     private static String getAuthorProfileUrl(String author){
         return DEVIANT_ART_URL.concat(author);

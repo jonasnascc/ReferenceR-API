@@ -20,9 +20,9 @@ public class DeviationDTO {
 
     private String matureLevel;
 
-    private DeviantAuthorDTO author;
+    private String license;
 
-    private String downloadPage;
+    private DeviantAuthorDTO author;
 
     private MediaDTO media;
 
@@ -36,7 +36,6 @@ public class DeviationDTO {
                 ", url='" + url + '\'' +
                 ", matureLevel='" + matureLevel + '\'' +
                 ", author=" + author +
-                ", downloadPage='" + downloadPage + '\'' +
                 ", media=" + media +
                 '}';
     }

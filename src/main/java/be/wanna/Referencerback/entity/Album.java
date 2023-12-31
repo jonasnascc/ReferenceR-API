@@ -1,5 +1,6 @@
 package be.wanna.Referencerback.entity;
 
+import be.wanna.Referencerback.entity.photo.Photo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

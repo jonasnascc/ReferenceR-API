@@ -2,16 +2,13 @@ package be.wanna.Referencerback.service;
 
 import be.wanna.Referencerback.dto.AlbumDTO;
 import be.wanna.Referencerback.dto.ConnectionDTO;
-import be.wanna.Referencerback.entity.Album;
-import be.wanna.Referencerback.entity.Photo;
+import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.User;
 import be.wanna.Referencerback.repository.UserRepository;
 import be.wanna.Referencerback.service.scraping.DeviantArtService;
 import lombok.AllArgsConstructor;
-import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.*;
 
 @Service
