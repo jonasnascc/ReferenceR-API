@@ -1,2 +1,16 @@
-package be.wanna.Referencerback.entity.user;public enum UserRole {
+package be.wanna.Referencerback.entity.user;
+
+public enum UserRole {
+    ADMIN("admin"),
+    USER("user");
+
+    private String role;
+
+    UserRole(String role) {
+        this.role = role;
+    }
+
+    public String getRole(){
+        return role;
+    }
 }

@@ -3,7 +3,7 @@ package be.wanna.Referencerback.service;
 import be.wanna.Referencerback.dto.AlbumDTO;
 import be.wanna.Referencerback.dto.ConnectionDTO;
 import be.wanna.Referencerback.entity.photo.Photo;
-import be.wanna.Referencerback.entity.User;
+import be.wanna.Referencerback.entity.user.User;
 import be.wanna.Referencerback.repository.UserRepository;
 import be.wanna.Referencerback.service.scraping.DeviantArtService;
 import lombok.AllArgsConstructor;

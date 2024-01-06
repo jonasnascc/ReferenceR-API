@@ -1,6 +1,7 @@
 package be.wanna.Referencerback.entity;
 
 import be.wanna.Referencerback.entity.connection.Connection;
+import be.wanna.Referencerback.entity.user.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;

@@ -3,12 +3,11 @@ package be.wanna.Referencerback.service.scraping;
 import be.wanna.Referencerback.dto.AlbumDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationAlbumDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationDTO;
-import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.mediatype.MediaTypeDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.offset.OffSetDTO;
 import be.wanna.Referencerback.entity.Author;
 import be.wanna.Referencerback.entity.photo.Deviation;
 import be.wanna.Referencerback.entity.photo.Photo;
-import be.wanna.Referencerback.entity.User;
+import be.wanna.Referencerback.entity.user.User;
 import be.wanna.Referencerback.entity.photo.PhotoType;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -51,6 +50,7 @@ public abstract class DeviantArtService {
         for(Element e : elements){
             String albumName = e.getElementsByTag("h2").select("._1nhB_").attr("title");
             String albumUrl = e.getElementsByTag("a").attr("href");
+            String thumbUrl = e.getElementsByTag("div").select("._24Wda > img").attr("src");
 
             Optional<Element> optDeviationsNum = e.getElementsByTag("span").select("._3XJHo")
                     .stream().toList()
@@ -70,7 +70,7 @@ public abstract class DeviantArtService {
             AlbumDTO album = null;
             try {
                 String albumId = albumUrl.split("/")[5];
-                album = getAlbum(albumId, albumName, albumUrl, author, photosNum);
+                album = getAlbum(albumId, albumName, albumUrl, thumbUrl, author, photosNum);
             } catch (Exception err) {
                 System.out.printf("Erro ao obter álbum: " + err.getMessage());
             }
@@ -237,14 +237,14 @@ public abstract class DeviantArtService {
         return albumId.replace(DEVIANTART.concat("-"), "");
     }
 
-    private static AlbumDTO getAlbum(String id, String name, String url, String author, Integer photosNum){
+    private static AlbumDTO getAlbum(String id, String name, String url,  String thumbUrl, String author, Integer photosNum){
         String code;
         if(id.equals("all")){
             code = DEVIANTART.concat("-").concat(author);
         } else
             code = DEVIANTART.concat("-").concat(id);
 
-        return new AlbumDTO(code, name, url, author, DEVIANTART, photosNum);
+        return new AlbumDTO(code, name, url, thumbUrl, author, DEVIANTART, photosNum);
     }
 
     private static Deviation getDeviation(DeviationDTO dto){

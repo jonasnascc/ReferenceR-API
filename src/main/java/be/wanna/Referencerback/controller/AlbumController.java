@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 public class AlbumController {
     public final AlbumsService service;
 
-    @GetMapping("{author}/albums")
+    @GetMapping(value = "{author}/albums", produces = "application/json")
     public ResponseEntity<?> listAuthorAlbums(
             @RequestParam String provider,
             @PathVariable String author

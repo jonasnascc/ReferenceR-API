@@ -1,7 +1,7 @@
 package be.wanna.Referencerback.service.connection;
 
 import be.wanna.Referencerback.entity.Provider;
-import be.wanna.Referencerback.entity.User;
+import be.wanna.Referencerback.entity.user.User;
 import be.wanna.Referencerback.entity.connection.Connection;
 import be.wanna.Referencerback.entity.connection.Cookie;
 import be.wanna.Referencerback.entity.connection.CsrfToken;

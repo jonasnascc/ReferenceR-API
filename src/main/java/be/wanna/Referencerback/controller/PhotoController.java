@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 public class PhotoController {
     private final AlbumsService service;
-    @GetMapping("{author}/albums/{albumId}/photos")
+    @GetMapping(value = "{author}/albums/{albumId}/photos", consumes = "application/json" )
     public ResponseEntity<?> getAlbumPhotos(
             @RequestParam String provider,
             @RequestParam Integer page,

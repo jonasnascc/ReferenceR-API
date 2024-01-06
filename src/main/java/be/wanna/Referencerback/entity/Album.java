@@ -23,6 +23,8 @@ public class Album {
 
     private String url;
 
+    private String thumbnailUrl;
+
     @ManyToOne
     private Author author;
 
