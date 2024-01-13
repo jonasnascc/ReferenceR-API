@@ -21,6 +21,9 @@ import java.util.List;
 @Table(name = "USER_RFR")
 public class User implements UserDetails {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
     private String login;
 
     private String password;

@@ -25,9 +25,8 @@ public class AlbumsService {
     }
 
     public Set<Photo> listPhotos(String author, String albumId, int page, int limit, String provider, ConnectionDTO userDTO){
-        Optional<User> optUser = userRepository.findById(userDTO.username());
-        if(optUser.isEmpty()) throw new RuntimeException("User not found.");
-        User user = optUser.get();
+        User user = userRepository.findByLogin(userDTO.username());
+
         if(!Integer.toString(userDTO.password().hashCode()).equals(user.getPassword())){
             throw new RuntimeException("User not authorized.");
         }

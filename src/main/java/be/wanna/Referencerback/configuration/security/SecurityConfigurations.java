@@ -27,11 +27,13 @@ public class SecurityConfigurations {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers("/h2/**").permitAll() //remove in production environment
                                 .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
 //                              .requestMatchers(HttpMethod.POST, "/pathname").hasRole("ADMIN") ==example==
+                                .requestMatchers(HttpMethod.POST, "/h2/*").permitAll()    //remove in production environment
+                                .requestMatchers(HttpMethod.GET, "/h2/*").permitAll()     //remove in production environment
                                 .anyRequest().authenticated()
+
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers.frameOptions(Customizer.withDefaults()).disable()) //remove in production environment

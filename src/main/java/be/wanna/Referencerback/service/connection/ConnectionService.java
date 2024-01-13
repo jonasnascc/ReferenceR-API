@@ -41,17 +41,17 @@ public class ConnectionService{
     public Long newConnection(String username, String password, String providerName) throws Exception {
         User user;
 
-        Optional<User> optUser = userRepository.findById(username);
-        if(optUser.isPresent()){
-            int correctHash = Integer.parseInt(optUser.get().getPassword());
-            int dtoHash = password.hashCode();
-            if(dtoHash != correctHash) throw new RuntimeException("Invalid Password.");
-            user = optUser.get();
-        }
-        else user = userRepository.save(new User(username, Integer.toString(password.hashCode())));
+//        User optUser = userRepository.findByLogin(username);
+//        if(optUser != null){
+//            int correctHash = Integer.parseInt(optUser.get().getPassword());
+//            int dtoHash = password.hashCode();
+//            if(dtoHash != correctHash) throw new RuntimeException("Invalid Password.");
+//            user = optUser.get();
+//        }
+//        else user = userRepository.save(new User(username, Integer.toString(password.hashCode())));
 
         Provider provider = providerRepository.findById(providerName).orElseThrow(() -> new RuntimeException("Provider(%s) not found.".formatted(providerName)));
-        provider.setUser(user);
+        //provider.setUser(user);
 
         List<Cookie> cookies = getNewCookies(username, password, provider);
 

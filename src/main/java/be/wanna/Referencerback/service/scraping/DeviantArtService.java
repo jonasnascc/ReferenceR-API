@@ -192,46 +192,7 @@ public abstract class DeviantArtService {
 
         return params;
 
-
-//        if(albumId.contains(authorName))
-//            if(authorName.equals("All"))
-//                return ("https://www.deviantart.com/_puppy/dashared/gallection/contents" +
-//                        "username=AdorkaStock&type=gallery" +
-//                        "&offset=24" +
-//                        "&limit=24" +
-//                        "&all_folder=true" +
-//                        "&csrf_token=%s")
-//                        .formatted(authorName, number, limit, csrfToken);
-//            else  return null;
-//        else return("https://www.deviantart.com/_puppy/dashared/gallection/contents" +
-//                "?username=%s" +
-//                "&type=gallery" +
-//                "&offset=%d" +
-//                "&limit=%d" +
-//                "&folderid=%s" +
-//                "&csrf_token=%s")
-//                .formatted(authorName, number, limit, getAlbumIdStr(albumId), csrfToken);
     }
-//    private static String getOffSetUrl(Integer number, String albumId, String authorName, Integer limit, String csrfToken){
-//        if(albumId.contains(authorName))
-//            if(authorName.equals("All"))
-//                return ("https://www.deviantart.com/_puppy/dashared/gallection/contents" +
-//                        "username=AdorkaStock&type=gallery" +
-//                        "&offset=24" +
-//                        "&limit=24" +
-//                        "&all_folder=true" +
-//                        "&csrf_token=%s")
-//                        .formatted(authorName, number, limit, csrfToken);
-//            else  return null;
-//        else return("https://www.deviantart.com/_puppy/dashared/gallection/contents" +
-//                    "?username=%s" +
-//                    "&type=gallery" +
-//                    "&offset=%d" +
-//                    "&limit=%d" +
-//                    "&folderid=%s" +
-//                    "&csrf_token=%s")
-//                .formatted(authorName, number, limit, getAlbumIdStr(albumId), csrfToken);
-//    }
 
     private static String getAlbumIdStr(String albumId){
         return albumId.replace(DEVIANTART.concat("-"), "");
