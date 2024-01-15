@@ -16,9 +16,12 @@ import java.util.*;
 public class AlbumsService {
 
     private final UserRepository userRepository;
+
+    private final DeviantArtService deviantArtService;
+
     public List<AlbumDTO> getAuthorAlbums(String author, String provider){
         if (provider.equals("deviantart")) {
-            return DeviantArtService.findUserAlbums(author);
+            return deviantArtService.findUserAlbums(author);
         }
 
         return Collections.emptyList();
@@ -26,7 +29,7 @@ public class AlbumsService {
 
     public Set<Photo> listPhotos(String author, String albumId, int page, int limit, String provider){
         if (provider.equals("deviantart")) {
-            return DeviantArtService.listAlbumPhotosByPage(albumId, author, page, Math.min(limit, 60));
+            return deviantArtService.listAlbumPhotosByPage(albumId, author, page, Math.min(limit, 60));
         }
 
         return Collections.emptySet();
