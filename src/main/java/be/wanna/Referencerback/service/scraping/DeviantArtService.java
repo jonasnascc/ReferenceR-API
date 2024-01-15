@@ -4,6 +4,7 @@ import be.wanna.Referencerback.dto.AlbumDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationAlbumDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.offset.OffSetDTO;
+import be.wanna.Referencerback.dto.deviantArt.deviation.out.DeviationMediaDTO;
 import be.wanna.Referencerback.entity.Author;
 import be.wanna.Referencerback.entity.photo.Deviation;
 import be.wanna.Referencerback.entity.photo.Photo;
@@ -12,6 +13,7 @@ import be.wanna.Referencerback.entity.photo.PhotoType;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.AllArgsConstructor;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -86,20 +88,21 @@ public abstract class DeviantArtService {
         return albums;
     }
 
-    public static Set<Photo> listAlbumPhotosByPage(String albumId, String authorName, int number, int limitByPage, User user){
-        return getAlbumDeviations(albumId, authorName, number, limitByPage, user).stream().map(DeviantArtService::getDeviation).collect(Collectors.toSet());
+    public static Set<Photo> listAlbumPhotosByPage(String albumId, String authorName, int number, int limitByPage){
+        return getAlbumDeviations(albumId, authorName, number, limitByPage).stream()
+                .map(DeviantArtService::getDeviation).collect(Collectors.toSet());
     }
 
-    private static Set<DeviationDTO> getAlbumDeviations(String albumId, String authorName, Integer page, Integer limitByPage, User user){
+    private static Set<DeviationDTO> getAlbumDeviations(String albumId, String authorName, Integer page, Integer limitByPage){
         OffSetDTO offset = getOffSet(page, albumId, authorName, limitByPage);
 
-        Set<DeviationDTO> listDevs;
+        Set<DeviationDTO> setDeviations;
         if(offset!=null){
-            listDevs = new HashSet<>(offset.getResults());
+            setDeviations = new HashSet<>(offset.getResults());
         }
         else return Collections.emptySet();
 
-        return listDevs;
+        return setDeviations;
     }
 
     private static List<OffSetDTO> getAllOffSets(String albumId, String authorName){
@@ -194,6 +197,24 @@ public abstract class DeviantArtService {
 
     }
 
+    public static DeviationMediaDTO getDeviationInfoByUrl(String url){
+        try{
+            Map<String, String> data = new HashMap<>();
+            data.put("url", url);
+
+            Connection.Response response = Jsoup.connect("https://backend.deviantart.com/oembed")
+                    .data(data)
+                    .ignoreContentType(true)
+                    .execute();
+
+            Gson gson = new Gson().newBuilder().setPrettyPrinting().create();
+            return gson.fromJson(response.body(), DeviationMediaDTO.class);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static String getAlbumIdStr(String albumId){
         return albumId.replace(DEVIANTART.concat("-"), "");
     }
@@ -222,15 +243,8 @@ public abstract class DeviantArtService {
         deviation.setLicense(dto.getLicense());
         deviation.setType(PhotoType.DEVIATION);
 
-//        String url = dto.getMedia().getBaseUri();
-//        try{
-//            String prettyName = dto.getMedia().getPrettyName();
-//            Optional<MediaTypeDTO> mediaType = dto.getMedia().getTypes().stream().filter(type -> type.getT().contains("fullview")).findAny();
-//            if(mediaType.isPresent()){
-//                url = url.concat( mediaType.get().getC().replace("<prettyName>", prettyName) );
-//            }
-//            deviation.setUrl(url);
-//        } catch (NullPointerException ignored){}
+        DeviationMediaDTO infoDTO = getDeviationInfoByUrl(dto.getUrl());
+        deviation.setUrl(infoDTO.url());
 
         return deviation;
     }

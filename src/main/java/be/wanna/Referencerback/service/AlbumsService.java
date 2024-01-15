@@ -24,15 +24,9 @@ public class AlbumsService {
         return Collections.emptyList();
     }
 
-    public Set<Photo> listPhotos(String author, String albumId, int page, int limit, String provider, ConnectionDTO userDTO){
-        User user = userRepository.findByLogin(userDTO.username());
-
-        if(!Integer.toString(userDTO.password().hashCode()).equals(user.getPassword())){
-            throw new RuntimeException("User not authorized.");
-        }
-
+    public Set<Photo> listPhotos(String author, String albumId, int page, int limit, String provider){
         if (provider.equals("deviantart")) {
-            return DeviantArtService.listAlbumPhotosByPage(albumId, author, page, Math.min(limit, 60), user);
+            return DeviantArtService.listAlbumPhotosByPage(albumId, author, page, Math.min(limit, 60));
         }
 
         return Collections.emptySet();
