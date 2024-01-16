@@ -43,61 +43,6 @@ public class DeviantArtService {
     //?username=artreferencesource&deviations_limit=24&with_subfolders=true&csrf_token=
 
 
-    public List<AlbumDTO> findUserAlbumsByPageDocument(String author){
-//        System.out.println("Getting gallery albums...");
-        String url = getAuthorProfileUrl(author).concat("/gallery");
-//
-        Document doc = null;
-        try{
-            doc = Jsoup.connect(url).ignoreContentType(true).get();
-        } catch (IOException e){
-            System.out.printf("Erro na conexão com o perfil de usuário Deviantart: " + e.getMessage());
-        }
-
-        assert doc != null;
-        Elements elements = doc.getElementsByTag("section").select("._1olSA._3zHuD");
-        System.out.println(elements.size());
-
-        List<AlbumDTO> albums = new ArrayList<>();
-        for(Element e : elements){
-            String albumName = e.getElementsByTag("h2").select("._1nhB_").attr("title");
-            String albumUrl = e.getElementsByTag("a").attr("href");
-            String thumbUrl = e.getElementsByTag("div").select("._24Wda > img").attr("src");
-
-            Optional<Element> optDeviationsNum = e.getElementsByTag("span").select("._3XJHo")
-                    .stream().toList()
-                    .stream().filter(el -> el.text().toLowerCase().contains("deviations"))
-                    .findFirst();
-
-            Integer photosNum = null;
-            try{
-                String devNum = "";
-                if(optDeviationsNum.isPresent()){
-                    devNum = optDeviationsNum.get().text();
-                }
-                photosNum = Integer.parseInt(devNum.replace(" deviations", "").trim());
-            } catch (Exception ignored){}
-
-            DeviationAlbumDTO devAlbum = null;
-            AlbumDTO album = null;
-            try {
-                String albumId = albumUrl.split("/")[5];
-                album = getAlbum(albumId, albumName, albumUrl, thumbUrl, author, photosNum);
-            } catch (Exception err) {
-                System.out.printf("Erro ao obter álbum: " + err.getMessage());
-            }
-
-            if(album != null) {
-                //album.setPhotos(getAlbumDeviations(album).stream().map(DvArtScrap::getPhoto).collect(Collectors.toList()));
-                //devAlbum.setDeviations(getAlbumDeviations(album));
-                albums.add(album);
-                System.out.println("- " + album.name() + " (" + " photos) added.");
-            }
-        }
-//
-        return albums;
-    }
-
     public List<AlbumDTO> findUserAlbums(String author){
         GalleryInfoDTO galInfo = getUserGalleryInfo(author);
         ModuleDTO moduleDTO = galInfo.gruser().page().modules().stream().filter(mod -> mod.name().equals("folders")).findAny().orElse(null);
@@ -107,9 +52,12 @@ public class DeviantArtService {
             List<GalResultDTO> results = moduleDTO.moduleData().folders().results();
             if(results!=null){
                 results.forEach(res -> {
-                    String albumUrl = "https://www.deviantart.com/" + author + "/gallery/" + res.folderId();
-                    albums.add(getAlbum(Integer.toString(res.folderId()), res.name(), albumUrl, getDeviationDownloadUrl(res.thumb()), author, res.size()));
-                    System.out.println("%s - %s : %s (%d Photos)\n---\n".formatted(res.folderId(), res.name(), res.description(), res.size()));
+                    String id  = Integer.toString(res.folderId());
+                    if(id.equals("-1")) id = "all";
+                    else if(id.equals("-2")) id = "scraps";
+
+                    String albumUrl = "https://www.deviantart.com/" + author + "/gallery/" + id;
+                    albums.add(getAlbum(id, res.name(), albumUrl, getDeviationDownloadUrl(res.thumb()), author, res.size()));
                 });
             }
         }
@@ -280,13 +228,62 @@ public class DeviantArtService {
     }
 
     private AlbumDTO getAlbum(String id, String name, String url,  String thumbUrl, String author, Integer photosNum){
-        String code;
-        if(id.equals("all")){
-            code = DEVIANTART.concat("-").concat(author);
-        } else
-            code = DEVIANTART.concat("-").concat(id);
+        return new AlbumDTO(id, name, url, thumbUrl, author, DEVIANTART, photosNum);
+    }
 
-        return new AlbumDTO(code, name, url, thumbUrl, author, DEVIANTART, photosNum);
+    public List<AlbumDTO> findUserAlbumsByPageDocument(String author){
+//        System.out.println("Getting gallery albums...");
+        String url = getAuthorProfileUrl(author).concat("/gallery");
+//
+        Document doc = null;
+        try{
+            doc = Jsoup.connect(url).ignoreContentType(true).get();
+        } catch (IOException e){
+            System.out.printf("Erro na conexão com o perfil de usuário Deviantart: " + e.getMessage());
+        }
+
+        assert doc != null;
+        Elements elements = doc.getElementsByTag("section").select("._1olSA._3zHuD");
+        System.out.println(elements.size());
+
+        List<AlbumDTO> albums = new ArrayList<>();
+        for(Element e : elements){
+            String albumName = e.getElementsByTag("h2").select("._1nhB_").attr("title");
+            String albumUrl = e.getElementsByTag("a").attr("href");
+            String thumbUrl = e.getElementsByTag("div").select("._24Wda > img").attr("src");
+
+            Optional<Element> optDeviationsNum = e.getElementsByTag("span").select("._3XJHo")
+                    .stream().toList()
+                    .stream().filter(el -> el.text().toLowerCase().contains("deviations"))
+                    .findFirst();
+
+            Integer photosNum = null;
+            try{
+                String devNum = "";
+                if(optDeviationsNum.isPresent()){
+                    devNum = optDeviationsNum.get().text();
+                }
+                photosNum = Integer.parseInt(devNum.replace(" deviations", "").trim());
+            } catch (Exception ignored){}
+
+            DeviationAlbumDTO devAlbum = null;
+            AlbumDTO album = null;
+            try {
+                String albumId = albumUrl.split("/")[5];
+                album = getAlbum(albumId, albumName, albumUrl, thumbUrl, author, photosNum);
+            } catch (Exception err) {
+                System.out.printf("Erro ao obter álbum: " + err.getMessage());
+            }
+
+            if(album != null) {
+                //album.setPhotos(getAlbumDeviations(album).stream().map(DvArtScrap::getPhoto).collect(Collectors.toList()));
+                //devAlbum.setDeviations(getAlbumDeviations(album));
+                albums.add(album);
+                System.out.println("- " + album.name() + " (" + " photos) added.");
+            }
+        }
+//
+        return albums;
     }
 
     private Deviation getDeviation(DeviationDTO dto){
@@ -319,15 +316,23 @@ public class DeviantArtService {
         try{
             List<MediaTypeDTO> types = dto.getMedia().getTypes().stream().filter(tp -> tp.getC() != null).toList();
 
-            String fullView = types.stream().filter(tp -> tp.getC().contains("fullview")).findAny().get().getC();
-            String prettyName = dto.getMedia().getPrettyName();
-            String token = dto.getMedia().getToken().get(0);
+            String fullview = "";
+            Optional<MediaTypeDTO> optMediaType = types.stream().filter(tp -> tp.getC().contains("fullview")).findAny();
+            if(optMediaType.isEmpty()){
+                Optional<MediaTypeDTO> optPreview = types.stream().filter(tp -> tp.getC().contains("preview")).findFirst();
+                if(optPreview.isPresent()) fullview = optPreview.get().getC() != null ? optPreview.get().getC() : "";
 
-            url = baseUri.concat(fullView).concat("?token=" + token).replace("<prettyName>", prettyName);
+            } else if(optMediaType.get().getC() != null) fullview = optMediaType.get().getC();
+            String prettyName = dto.getMedia().getPrettyName();
+            String token = dto.getMedia().getToken() != null ? ("?token=" + dto.getMedia().getToken().get(0)) : "";
+
+            url = baseUri.concat(fullview).concat(token).replace("<prettyName>", prettyName);
 
             
         } catch (Exception e ){
-            System.out.println(e.getMessage());
+            Gson gson = new Gson();
+            System.out.println(gson.toJson(dto.getMedia()));
+            e.printStackTrace();
         }
         return url;
     }
