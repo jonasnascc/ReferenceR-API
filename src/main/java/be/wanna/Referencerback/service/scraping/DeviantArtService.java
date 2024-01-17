@@ -71,7 +71,9 @@ public class DeviantArtService {
     }
 
     private Set<DeviationDTO> getAlbumDeviations(String albumId, String authorName, Integer page, Integer limitByPage){
-        OffSetDTO offset = getOffSet(page, albumId, authorName, limitByPage);
+        int offsetPg = (page - 1) * limitByPage;
+
+        OffSetDTO offset = getOffSet(offsetPg, albumId, authorName, limitByPage);
 
         Set<DeviationDTO> setDeviations;
         if(offset!=null){
@@ -156,7 +158,10 @@ public class DeviantArtService {
             //return getOffSet(number, album);
         }
 
-        if(doc == null) throw new RuntimeException("Error while readin' the page.");
+        if(doc == null) {
+            System.out.println();
+            throw new RuntimeException("Error while readin' the page.");
+        }
         Elements elements = doc.getElementsByTag("body");
 
         String json = elements.text();
