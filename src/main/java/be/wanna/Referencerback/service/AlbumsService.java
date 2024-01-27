@@ -27,9 +27,9 @@ public class AlbumsService {
         return Collections.emptyList();
     }
 
-    public Set<Photo> listPhotos(String author, String albumId, int page, int limit, String provider){
+    public Set<Photo> listPhotos(String author, String albumId, int page, int limit, String provider, Integer maxThumbsize){
         if (provider.equals("deviantart")) {
-            return deviantArtService.listAlbumPhotosByPage(albumId, author, page, Math.min(limit, 60));
+            return deviantArtService.listAlbumPhotosByPage(albumId, author, page, Math.min(limit, 60), maxThumbsize);
         }
 
         return Collections.emptySet();

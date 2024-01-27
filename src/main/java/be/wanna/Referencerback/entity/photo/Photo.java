@@ -31,6 +31,8 @@ public class Photo {
 
     private PhotoType type;
 
+    private String thumbUrl;
+
     @ManyToMany(mappedBy = "photos")
     @JsonIgnore
     private Set<Album> albums;

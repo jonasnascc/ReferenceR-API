@@ -16,6 +16,8 @@ public class DeviationDTO {
 
     private String url;
 
+    private String thumbUrl;
+
     private boolean isMature;
 
     private String matureLevel;

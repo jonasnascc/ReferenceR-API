@@ -17,11 +17,13 @@ public class PhotoController {
             @RequestParam String provider,
             @RequestParam Integer page,
             @RequestParam Integer limit,
+            @RequestParam Integer maxThumbSize,
             @PathVariable String author,
             @PathVariable String albumId
             ){
-        return new ResponseEntity<>(service.listPhotos(author, albumId, page, limit, provider), HttpStatus.OK);
+        return new ResponseEntity<>(service.listPhotos(author, albumId, page, limit, provider, maxThumbSize), HttpStatus.OK);
     }
+
 
 
 }

@@ -5,7 +5,9 @@ import be.wanna.Referencerback.dto.CsrfResponseDTO;
 import be.wanna.Referencerback.dto.deviantArt.TagDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationAlbumDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationDTO;
+import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.MediaDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.mediatype.MediaTypeDTO;
+import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.mediatype.Ss;
 import be.wanna.Referencerback.dto.deviantArt.deviation.offset.OffSetDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.out.DeviationMediaDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.GalResultDTO;
@@ -60,7 +62,7 @@ public class DeviantArtService {
                     else if(id.equals("-2")) id = "scraps";
 
                     String albumUrl = "https://www.deviantart.com/" + author + "/gallery/" + id;
-                    albums.add(getAlbum(id, res.name(), albumUrl, getDeviationDownloadUrl(res.thumb()), author, res.size()));
+                    albums.add(getAlbum(id, res.name(), albumUrl, getDeviationDownloadUrl(res.thumb(), 300), author, res.size()));
                 });
             }
         }
@@ -68,9 +70,9 @@ public class DeviantArtService {
         return albums;
     }
 
-    public Set<Photo> listAlbumPhotosByPage(String albumId, String authorName, int number, int limitByPage){
+    public Set<Photo> listAlbumPhotosByPage(String albumId, String authorName, int number, int limitByPage, Integer maxThumbsize){
         return getAlbumDeviations(albumId, authorName, number, limitByPage).stream()
-                .map(this::getDeviation).collect(Collectors.toSet());
+                .map(dev -> getDeviation(dev, maxThumbsize)).collect(Collectors.toSet());
     }
 
     private Set<DeviationDTO> getAlbumDeviations(String albumId, String authorName, Integer page, Integer limitByPage){
@@ -319,7 +321,7 @@ public class DeviantArtService {
         return albums;
     }
 
-    private Deviation getDeviation(DeviationDTO dto){
+    private Deviation getDeviation(DeviationDTO dto, Integer maxThumbsize){
         Author author = new Author();
         author.setName(dto.getAuthor().getUsername());
         author.setProfileUrl(DEVIANT_ART_URL + author.getName());
@@ -333,41 +335,82 @@ public class DeviantArtService {
         deviation.setLicense(dto.getLicense());
         deviation.setType(PhotoType.DEVIATION);
 
-//        DeviationMediaDTO infoDTO = getDeviationInfoByUrl(dto.getUrl());
-//        deviation.setUrl(infoDTO.url());
-
-        String url = getDeviationDownloadUrl(dto);
-
-        deviation.setUrl(url);
+        deviation.setUrl(getDeviationDownloadUrl(dto));
+        if(maxThumbsize!=null) deviation.setThumbUrl(getDeviationDownloadUrl(dto, maxThumbsize));
 
         return deviation;
     }
 
-    private static String getDeviationDownloadUrl(DeviationDTO dto) {
-        String url = null;
-        String baseUri = dto.getMedia().getBaseUri();
-        try{
-            List<MediaTypeDTO> types = dto.getMedia().getTypes().stream().filter(tp -> tp.getC() != null).toList();
+    private String getDeviationDownloadUrl(DeviationDTO dto) {
+        return getDeviationDownloadUrlByType(dto.getMedia());
+    }
 
-            String fullview = "";
-            Optional<MediaTypeDTO> optMediaType = types.stream().filter(tp -> tp.getC().contains("fullview")).findAny();
-            if(optMediaType.isEmpty()){
-                Optional<MediaTypeDTO> optPreview = types.stream().filter(tp -> tp.getC().contains("preview")).findFirst();
-                if(optPreview.isPresent()) fullview = optPreview.get().getC() != null ? optPreview.get().getC() : "";
+    private String getDeviationDownloadUrl(DeviationDTO dto, int maxThumbSize) {
+        return getDeviationDownloadUrlByType(dto.getMedia(), maxThumbSize);
+    }
 
-            } else if(optMediaType.get().getC() != null) fullview = optMediaType.get().getC();
-            String prettyName = dto.getMedia().getPrettyName();
-            String token = dto.getMedia().getToken() != null ? ("?token=" + dto.getMedia().getToken().get(0)) : "";
+    private String getDeviationDownloadUrlByType(MediaDTO media){
+        return getDeviationDownloadUrlIncr(media, null, true);
+    }
 
-            url = baseUri.concat(fullview).concat(token).replace("<prettyName>", prettyName);
+    private String getDeviationDownloadUrlByType(MediaDTO media, int maxHeight){
+        return getDeviationDownloadUrlIncr(media,  maxHeight, false);
+    }
 
-            
-        } catch (Exception e ){
-            Gson gson = new Gson();
-            System.out.println(gson.toJson(dto.getMedia()));
-            e.printStackTrace();
+    private String getDeviationDownloadUrlIncr (MediaDTO media, Integer maxHeight, boolean fullSize) {
+        if(media.getBaseUri()==null || (maxHeight==null && !fullSize)) return "";
+
+        boolean fullHeight = false;
+        if(fullSize) fullHeight = fullSize;
+
+        List<MediaTypeDTO> types = media.getTypes();
+
+        int bestIndex = 0;
+        for (int i = 1; i < types.size(); i++) {
+            MediaTypeDTO currentType = validateType(types.get(i));
+            MediaTypeDTO best = validateType(types.get(bestIndex));
+            if( this.checkValidTypeDto(best) && this.checkValidTypeDto(currentType) ) {
+                int typeHeight = currentType.getH();
+                if (typeHeight > best.getH()) {
+                    if(!fullHeight && typeHeight <= maxHeight){
+                        bestIndex = i;
+                    }
+                    else if(fullHeight) {
+                        bestIndex = i;
+                    }
+                }
+            } else {
+                bestIndex = i;
+            }
         }
-        return url;
+        if(!this.checkValidTypeDto(types.get(bestIndex))) return "";
+
+        MediaTypeDTO type = types.get(bestIndex);
+        String view = type.getC()==null ? "" : type.getC();
+        String prettyName = media.getPrettyName();
+        String token = media.getToken() != null ? ("?token=" + media.getToken().get(0)) : "";
+
+        return media.getBaseUri().concat(view + token).replace("<prettyName>", prettyName);
+    }
+
+    private MediaTypeDTO validateType (MediaTypeDTO type) {
+        if(!checkValidTypeDto(type)) {
+            List<Ss> ssList = type.getSs();
+            if(ssList == null ) return type;
+            if(!ssList.isEmpty()){
+                Ss ss = ssList.get(0);
+
+                if(ss.getH() == null || ss.getW() == null) return type;
+                type.setW(ss.getW());
+                type.setH(ss.getH());
+                type.setC(ss.getC());
+            }
+        }
+        return type;
+    }
+
+    private boolean checkValidTypeDto (MediaTypeDTO type) {
+        return type.getH()!=null || type.getW()!=null;
     }
 
     private String getAuthorProfileUrl(String author){
