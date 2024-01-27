@@ -2,6 +2,7 @@ package be.wanna.Referencerback.service.scraping;
 
 import be.wanna.Referencerback.dto.AlbumDTO;
 import be.wanna.Referencerback.dto.CsrfResponseDTO;
+import be.wanna.Referencerback.dto.deviantArt.TagDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationAlbumDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.mediatype.MediaTypeDTO;
@@ -40,7 +41,9 @@ public class DeviantArtService {
     private final String OFFSET_URL = "https://www.deviantart.com/_puppy/dashared/gallection/contents";
 
     private final String USER_PROFILE_INFO_URL = "https://www.deviantart.com/_puppy/dauserprofile/init/gallery";
-    //?username=artreferencesource&deviations_limit=24&with_subfolders=true&csrf_token=
+
+    private final String DEVIATION_DETAILS_URL = "https://www.deviantart.com/_puppy/dadeviation/init";
+    //?deviationid=1011484517&username=Nightvenjer&type=art&include_session=false&csrf_token=
 
 
     public List<AlbumDTO> findUserAlbums(String author){
@@ -95,12 +98,13 @@ public class DeviantArtService {
         try(BufferedWriter bw = new BufferedWriter(new FileWriter("./testeUserProf.json"))){
             Connection.Response  response = Jsoup.connect(USER_PROFILE_INFO_URL)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
-                    .referrer("https://www.deviantart.com/%s/gallery".formatted(authorName))
+                    .referrer(DEVIATION_DETAILS_URL)
                     .data(params)
                     .method(Connection.Method.GET)
                     .ignoreContentType(true)
                     .cookies(csrfResponseDTO.cookies())
                     .execute();
+
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             GalleryInfoDTO galleryInfoDTO = gson.fromJson(response.body(), GalleryInfoDTO.class);
             bw.write(gson.toJson(galleryInfoDTO));
@@ -110,6 +114,30 @@ public class DeviantArtService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public List<TagDTO> getDeviationTagsByUrl(String deviationUrl) {
+        try{
+            Document doc = Jsoup.connect(deviationUrl)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
+                    .method(Connection.Method.GET)
+                    .ignoreContentType(true)
+                    .get();
+
+            List<Element> tagElements = doc.select("span._1nwad");
+
+            List<TagDTO> tags = new ArrayList<>();
+            if(tagElements.isEmpty()) return tags;
+
+            tagElements.forEach(tag -> tags.add(new TagDTO(tag.text(), DEVIANT_ART_URL + "tag/" + tag.text())));
+
+            return tags;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return Collections.emptyList();
     }
 
     private List<OffSetDTO> getAllOffSets(String albumId, String authorName){

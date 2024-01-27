@@ -18,4 +18,13 @@ public class DeviationController {
     ){
         return new ResponseEntity<>(photoService.getDeviationInfoByUrl(url), HttpStatus.OK);
     }
+
+    @GetMapping(value = "tags", produces = "application/json")
+    public ResponseEntity<?> getTagsByUrl(
+            @RequestParam String url
+    ){
+        return new ResponseEntity<>(photoService.getTagsByUrl(url), HttpStatus.OK);
+    }
+
+
 }
