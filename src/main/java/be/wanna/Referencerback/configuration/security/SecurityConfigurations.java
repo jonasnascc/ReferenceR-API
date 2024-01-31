@@ -29,7 +29,7 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(authorize -> authorize
                                 .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
-//                              .requestMatchers(HttpMethod.POST, "/pathname").hasRole("ADMIN") ==example==
+//                                .requestMatchers(HttpMethod.POST, "/pathname").hasRole("ADMIN") ==example==
                                 .requestMatchers(HttpMethod.POST, "/h2/*").permitAll()    //remove in production environment
                                 .requestMatchers(HttpMethod.GET, "/h2/*").permitAll()     //remove in production environment
                                 .anyRequest().authenticated()

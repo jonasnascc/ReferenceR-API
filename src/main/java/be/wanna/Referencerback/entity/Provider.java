@@ -32,7 +32,10 @@ public class Provider {
     private List<Connection> connections;
 
     @OneToMany(mappedBy = "provider")
-    private List<Album> album;
+    private List<Album> albums;
+
+    @OneToMany(mappedBy = "provider")
+    private List<Author> authors;
 
     @ManyToOne
     private User user;

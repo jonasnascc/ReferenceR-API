@@ -263,7 +263,7 @@ public class DeviantArtService {
     }
 
     private AlbumDTO getAlbum(String id, String name, String url,  String thumbUrl, String author, Integer photosNum){
-        return new AlbumDTO(id, name, url, thumbUrl, author, DEVIANTART, photosNum);
+        return new AlbumDTO(null ,id, name, url, thumbUrl, author, DEVIANTART, photosNum);
     }
 
     public List<AlbumDTO> findUserAlbumsByPageDocument(String author){

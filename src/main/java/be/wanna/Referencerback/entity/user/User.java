@@ -1,5 +1,6 @@
 package be.wanna.Referencerback.entity.user;
 
+import be.wanna.Referencerback.entity.Album;
 import be.wanna.Referencerback.entity.Provider;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,9 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user")
     private List<Provider> providers;
+
+    @OneToOne
+    private Favorites favorites;
 
 
     public User(String username, String password) {
