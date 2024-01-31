@@ -13,6 +13,7 @@ import be.wanna.Referencerback.dto.deviantArt.deviation.out.DeviationMediaDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.GalResultDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.GalleryInfoDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.ModuleDTO;
+import be.wanna.Referencerback.entity.Album;
 import be.wanna.Referencerback.entity.Author;
 import be.wanna.Referencerback.entity.photo.Deviation;
 import be.wanna.Referencerback.entity.photo.Photo;
@@ -319,6 +320,16 @@ public class DeviantArtService {
         }
 //
         return albums;
+    }
+
+    public String getAlbumThumbnailUrlWithToken(Album album){
+        List<AlbumDTO> authorAlbums = findUserAlbums(album.getAuthor().getName());
+        Optional<AlbumDTO> albumDTO = authorAlbums.stream().filter(alb -> album.getCode().equals(alb.code())).findAny();
+
+        if(albumDTO.isEmpty()) return album.getThumbnailUrl();
+
+        return albumDTO.get().thumbUrl();
+
     }
 
     private Deviation getDeviation(DeviationDTO dto, Integer maxThumbsize){

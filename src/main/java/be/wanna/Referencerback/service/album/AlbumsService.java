@@ -136,7 +136,12 @@ public class AlbumsService {
         } else author = optAuthor.get();
 
 
-        return new Album(dto.code(), dto.name(), dto.url(), "", author, provider);
+        return new Album(
+                dto.code(),
+                dto.name(),
+                dto.url(),
+                dto.thumbUrl().substring(0, dto.thumbUrl().indexOf("?token")),
+                author, provider);
     }
 
     private AlbumDTO convertDTO(Album album) {
@@ -146,7 +151,7 @@ public class AlbumsService {
                 album.getCode(),
                 album.getName(),
                 album.getUrl(),
-                album.getThumbnailUrl(),
+                deviantArtService.getAlbumThumbnailUrlWithToken(album), //Bad solution
                 album.getAuthor().getName(),
                 album.getProvider().getName(),
                 album.getPhotos() != null ? album.getPhotos().size() : null
