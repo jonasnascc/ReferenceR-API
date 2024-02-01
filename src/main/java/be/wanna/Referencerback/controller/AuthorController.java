@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthorController {
     @GetMapping("{author}")
     public ResponseEntity<?> getAuthor(
-            @RequestParam String provider,
+            @RequestHeader("Resources-provider") String provider,
             @PathVariable String author
     ){
         return new ResponseEntity<>(HttpStatus.OK);

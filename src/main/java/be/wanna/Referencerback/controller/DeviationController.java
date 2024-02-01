@@ -1,6 +1,6 @@
 package be.wanna.Referencerback.controller;
 
-import be.wanna.Referencerback.service.PhotoService;
+import be.wanna.Referencerback.service.photo.PhotoService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +14,7 @@ public class DeviationController {
 
     @GetMapping(produces = "application/json")
     public ResponseEntity<?> getDeviationInfoByUrl(
+            @RequestHeader("Resources-provider") String provider,
             @RequestParam String url
     ){
         return new ResponseEntity<>(photoService.getDeviationInfoByUrl(url), HttpStatus.OK);
@@ -21,6 +22,7 @@ public class DeviationController {
 
     @GetMapping(value = "tags", produces = "application/json")
     public ResponseEntity<?> getTagsByUrl(
+            @RequestHeader("Resources-provider") String provider,
             @RequestParam String url
     ){
         return new ResponseEntity<>(photoService.getTagsByUrl(url), HttpStatus.OK);

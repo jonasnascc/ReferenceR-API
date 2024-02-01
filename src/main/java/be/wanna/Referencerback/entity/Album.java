@@ -26,7 +26,8 @@ public class Album {
 
     private String url;
 
-    private String thumbnailUrl;
+    @ManyToOne
+    private Photo thumbnailPhoto;
 
     @ManyToOne
     private Author author;
@@ -38,21 +39,6 @@ public class Album {
     @JoinTable(name="albums_photos", joinColumns = {@JoinColumn(name="album_id")}, inverseJoinColumns = {@JoinColumn(name="photo_id")})
     private Set<Photo> photos;
 
-    public Album(String code, String name, String url, String thumbnailUrl) {
-        this.code = code;
-        this.name = name;
-        this.url = url;
-        this.thumbnailUrl = thumbnailUrl;
-    }
-
-    public Album(String code, String name, String url, String thumbnailUrl, Author author, Provider provider) {
-        this.code = code;
-        this.name = name;
-        this.url = url;
-        this.thumbnailUrl = thumbnailUrl;
-        this.author = author;
-        this.provider = provider;
-    }
 
     public void addPhoto(Photo photo){
         if(photos == null) photos = new HashSet<>();
@@ -62,6 +48,15 @@ public class Album {
         photos.add(photo);
     }
 
+    public Album(String code, String name, String url, Photo thumbnailPhoto, Author author, Provider provider) {
+        this.code = code;
+        this.name = name;
+        this.url = url;
+        this.thumbnailPhoto = thumbnailPhoto;
+        this.author = author;
+        this.provider = provider;
+    }
+
     @Override
     public String toString() {
         return "Album{" +
@@ -69,7 +64,6 @@ public class Album {
                 ", code='" + code + '\'' +
                 ", name='" + name + '\'' +
                 ", url='" + url + '\'' +
-                ", thumbnailUrl='" + thumbnailUrl + '\'' +
                 ", author=" + author +
                 ", provider=" + provider +
                 ", photos=" + photos +

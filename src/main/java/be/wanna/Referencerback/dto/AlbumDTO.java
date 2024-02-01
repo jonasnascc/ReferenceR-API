@@ -5,7 +5,7 @@ public record AlbumDTO (
         String code,
         String name,
         String url,
-        String thumbUrl,
+        PhotoDTO thumbnail,
         String author,
         String provider,
         Integer size

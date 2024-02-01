@@ -17,7 +17,7 @@ public class AlbumController {
 
     @GetMapping(value = "author/{author}/albums", produces = "application/json")
     public ResponseEntity<?> listAuthorAlbums(
-            @RequestParam String provider,
+            @RequestHeader("Resources-provider") String provider,
             @PathVariable String author
     ){
         return ResponseEntity.ok(service.getAuthorAlbums(author, provider));
@@ -46,7 +46,7 @@ public class AlbumController {
     @DeleteMapping("author/{author}/albums/{code}")
     public ResponseEntity<?> unFavoriteAlbumByUnsaved(
             @RequestHeader("Authorization") String authorization,
-            @RequestParam String provider,
+            @RequestHeader("Resources-provider") String provider,
             @PathVariable String author,
             @PathVariable String code
 

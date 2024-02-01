@@ -2,6 +2,7 @@ package be.wanna.Referencerback.service.album;
 
 import be.wanna.Referencerback.dto.AlbumDTO;
 import be.wanna.Referencerback.dto.AuthorDTO;
+import be.wanna.Referencerback.dto.PhotoDTO;
 import be.wanna.Referencerback.entity.Album;
 import be.wanna.Referencerback.entity.Author;
 import be.wanna.Referencerback.entity.Provider;
@@ -26,6 +27,8 @@ public class AlbumsService {
     private final DeviantArtService deviantArtService;
 
     private final AlbumRepository albumRepository;
+
+    private final PhotoRepository photoRepository;
 
     private final FavoritesRepository favoritesRepository;
 
@@ -128,6 +131,25 @@ public class AlbumsService {
     private Album convertAlbum(AlbumDTO dto) {
         Provider provider = providerRepository.findById(dto.provider()).orElseThrow(() -> new RuntimeException("Album provider not found in database"));
         Optional<Author> optAuthor = authorRepository.findAuthorByNameAndProvider(dto.author(), dto.provider());
+        PhotoDTO thumbDTO = dto.thumbnail();
+
+        Photo thumbnail = null;
+        if(thumbDTO.id() != null) {
+            Optional<Photo> optThumb = photoRepository.findById(dto.thumbnail().id());
+
+            if(optThumb.isPresent()) {
+                thumbnail = optThumb.get();
+            }
+        } else {
+            int tokenIndex = thumbDTO.url().indexOf("?token");
+
+             thumbnail =  photoRepository.save(new Photo(
+                     thumbDTO.code(),
+                     thumbDTO.title(),
+                     thumbDTO.url().substring(0, tokenIndex != -1 ? tokenIndex : thumbDTO.url().length())
+                     )
+             );
+        }
 
         Author author;
         if(optAuthor.isEmpty()) {
@@ -140,18 +162,21 @@ public class AlbumsService {
                 dto.code(),
                 dto.name(),
                 dto.url(),
-                dto.thumbUrl().substring(0, dto.thumbUrl().indexOf("?token")),
-                author, provider);
+                thumbnail,
+                author,
+                provider
+        );
     }
 
     private AlbumDTO convertDTO(Album album) {
+        Photo thumb = album.getThumbnailPhoto();
 
         return new AlbumDTO(
                 album.getId(),
                 album.getCode(),
                 album.getName(),
                 album.getUrl(),
-                deviantArtService.getAlbumThumbnailUrlWithToken(album), //Bad solution
+                deviantArtService.getDeviationWithToken(thumb, album.getAuthor().getName()),
                 album.getAuthor().getName(),
                 album.getProvider().getName(),
                 album.getPhotos() != null ? album.getPhotos().size() : null

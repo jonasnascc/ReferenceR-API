@@ -2,8 +2,8 @@ package be.wanna.Referencerback.service.scraping;
 
 import be.wanna.Referencerback.dto.AlbumDTO;
 import be.wanna.Referencerback.dto.CsrfResponseDTO;
+import be.wanna.Referencerback.dto.PhotoDTO;
 import be.wanna.Referencerback.dto.deviantArt.TagDTO;
-import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationAlbumDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.MediaDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.mediatype.MediaTypeDTO;
@@ -13,9 +13,7 @@ import be.wanna.Referencerback.dto.deviantArt.deviation.out.DeviationMediaDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.GalResultDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.GalleryInfoDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.ModuleDTO;
-import be.wanna.Referencerback.entity.Album;
 import be.wanna.Referencerback.entity.Author;
-import be.wanna.Referencerback.entity.photo.Deviation;
 import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.photo.PhotoType;
 import com.google.gson.Gson;
@@ -63,7 +61,16 @@ public class DeviantArtService {
                     else if(id.equals("-2")) id = "scraps";
 
                     String albumUrl = "https://www.deviantart.com/" + author + "/gallery/" + id;
-                    albums.add(getAlbum(id, res.name(), albumUrl, getDeviationDownloadUrl(res.thumb(), 300), author, res.size()));
+                    albums.add(
+                            getAlbum(
+                                    id,
+                                    res.name(),
+                                    albumUrl,
+                                    convertDeviationToPhotoDTO(getDeviation(res.thumb(), 300)),
+                                    author,
+                                    res.size()
+                            )
+                    );
                 });
             }
         }
@@ -241,6 +248,10 @@ public class DeviantArtService {
 
     }
 
+    private PhotoDTO convertDeviationToPhotoDTO(Photo deviation) {
+        return new PhotoDTO(deviation.getId(), deviation.getCode(), deviation.getUrl(), deviation.getTitle());
+    }
+
     public DeviationMediaDTO getDeviationInfoByUrl(String url){
         try{
             Map<String, String> data = new HashMap<>();
@@ -263,13 +274,13 @@ public class DeviantArtService {
         return albumId.replace(DEVIANTART.concat("-"), "");
     }
 
-    private AlbumDTO getAlbum(String id, String name, String url,  String thumbUrl, String author, Integer photosNum){
-        return new AlbumDTO(null ,id, name, url, thumbUrl, author, DEVIANTART, photosNum);
+    private AlbumDTO getAlbum(String id, String name, String url, PhotoDTO thumbnail, String author, Integer photosNum){
+        return new AlbumDTO(null ,id, name, url, thumbnail, author, DEVIANTART, photosNum);
     }
 
-    public List<AlbumDTO> findUserAlbumsByPageDocument(String author){
+    public void findUserAlbumsByPageDocument(String author){
 //        System.out.println("Getting gallery albums...");
-        String url = getAuthorProfileUrl(author).concat("/gallery");
+        /*String url = getAuthorProfileUrl(author).concat("/gallery");
 //
         Document doc = null;
         try{
@@ -306,7 +317,7 @@ public class DeviantArtService {
             AlbumDTO album = null;
             try {
                 String albumId = albumUrl.split("/")[5];
-                album = getAlbum(albumId, albumName, albumUrl, thumbUrl, author, photosNum);
+                album = getAlbum(albumId, albumName, albumUrl, "thumbUrl", author, photosNum);
             } catch (Exception err) {
                 System.out.printf("Erro ao obter álbum: " + err.getMessage());
             }
@@ -319,27 +330,17 @@ public class DeviantArtService {
             }
         }
 //
-        return albums;
+        return albums;*/
     }
 
-    public String getAlbumThumbnailUrlWithToken(Album album){
-        List<AlbumDTO> authorAlbums = findUserAlbums(album.getAuthor().getName());
-        Optional<AlbumDTO> albumDTO = authorAlbums.stream().filter(alb -> album.getCode().equals(alb.code())).findAny();
-
-        if(albumDTO.isEmpty()) return album.getThumbnailUrl();
-
-        return albumDTO.get().thumbUrl();
-
-    }
-
-    private Deviation getDeviation(DeviationDTO dto, Integer maxThumbsize){
+    private Photo getDeviation(DeviationDTO dto, Integer maxThumbsize){
         Author author = new Author();
         author.setName(dto.getAuthor().getUsername());
         author.setProfileUrl(DEVIANT_ART_URL + author.getName());
 
-        Deviation deviation = new Deviation();
-        deviation.setId(dto.getDeviationId());
-        deviation.setDeviationPage(dto.getUrl());
+        Photo deviation = new Photo();
+        deviation.setCode(Long.toString(dto.getDeviationId()));
+        deviation.setPhotoPage(dto.getUrl());
         deviation.setTitle(dto.getTitle());
         deviation.setMature(dto.isMature());
         deviation.setMatureLevel(dto.getMatureLevel());
@@ -426,5 +427,22 @@ public class DeviantArtService {
 
     private String getAuthorProfileUrl(String author){
         return DEVIANT_ART_URL.concat(author);
+    }
+
+    public PhotoDTO getDeviationWithToken(Photo deviation, String author) {
+        String url = "https://www.deviantart.com/"
+                +author+
+                "/art/"
+                +deviation.getTitle().replace(" " , "-") + "-" + deviation.getCode();
+        deviation.setPhotoPage(url);
+
+        DeviationMediaDTO infoByUrl = getDeviationInfoByUrl(deviation.getPhotoPage());
+
+        return new PhotoDTO(
+                deviation.getId(),
+                deviation.getCode(),
+                infoByUrl.thumbnail_url(),
+                deviation.getTitle()
+        );
     }
 }
