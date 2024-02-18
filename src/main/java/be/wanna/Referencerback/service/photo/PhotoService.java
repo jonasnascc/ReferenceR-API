@@ -2,6 +2,7 @@ package be.wanna.Referencerback.service.photo;
 
 import be.wanna.Referencerback.dto.PhotoDTO;
 import be.wanna.Referencerback.dto.deviantArt.TagDTO;
+import be.wanna.Referencerback.entity.Album;
 import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.user.Favorites;
 import be.wanna.Referencerback.entity.user.User;

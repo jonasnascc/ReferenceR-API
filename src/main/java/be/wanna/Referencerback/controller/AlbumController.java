@@ -64,4 +64,11 @@ public class AlbumController {
 
         return ResponseEntity.ok( service.getFavoritedAlbums(login) );
     }
+
+    @GetMapping("albums/{albumId}/thumbnail")
+    public ResponseEntity<?> getAlbumThumbnail (
+            @PathVariable Long albumId
+    ) {
+        return ResponseEntity.ok(service.getAlbumThumbnail(albumId));
+    }
 }

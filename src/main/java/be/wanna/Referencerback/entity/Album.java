@@ -26,6 +26,8 @@ public class Album {
 
     private String url;
 
+    private Integer size;
+
     @ManyToOne
     private Photo thumbnailPhoto;
 
@@ -48,10 +50,11 @@ public class Album {
         photos.add(photo);
     }
 
-    public Album(String code, String name, String url, Photo thumbnailPhoto, Author author, Provider provider) {
+    public Album(String code, String name, String url, Integer size, Photo thumbnailPhoto, Author author, Provider provider) {
         this.code = code;
         this.name = name;
         this.url = url;
+        this.size = size;
         this.thumbnailPhoto = thumbnailPhoto;
         this.author = author;
         this.provider = provider;

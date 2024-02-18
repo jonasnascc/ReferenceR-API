@@ -128,6 +128,12 @@ public class AlbumsService {
         return albums.stream().map(this::convertDTO).collect(Collectors.toList());
     }
 
+    public PhotoDTO getAlbumThumbnail(Long albumId){
+        Album album = albumRepository.findById(albumId).orElseThrow(() -> new RuntimeException("Album not found in database."));
+        Photo thumb = album.getThumbnailPhoto();
+        return deviantArtService.getDeviationWithToken(thumb, album.getAuthor().getName());
+    }
+
     private Album convertAlbum(AlbumDTO dto) {
         Provider provider = providerRepository.findById(dto.provider()).orElseThrow(() -> new RuntimeException("Album provider not found in database"));
         Optional<Author> optAuthor = authorRepository.findAuthorByNameAndProvider(dto.author(), dto.provider());
@@ -162,6 +168,7 @@ public class AlbumsService {
                 dto.code(),
                 dto.name(),
                 dto.url(),
+                dto.size(),
                 thumbnail,
                 author,
                 provider
@@ -169,17 +176,15 @@ public class AlbumsService {
     }
 
     private AlbumDTO convertDTO(Album album) {
-        Photo thumb = album.getThumbnailPhoto();
-
         return new AlbumDTO(
                 album.getId(),
                 album.getCode(),
                 album.getName(),
                 album.getUrl(),
-                deviantArtService.getDeviationWithToken(thumb, album.getAuthor().getName()),
+                null,
                 album.getAuthor().getName(),
                 album.getProvider().getName(),
-                album.getPhotos() != null ? album.getPhotos().size() : null
+                album.getSize()
         );
     }
 
