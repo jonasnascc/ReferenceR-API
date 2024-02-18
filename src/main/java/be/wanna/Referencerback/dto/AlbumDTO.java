@@ -8,5 +8,6 @@ public record AlbumDTO (
         PhotoDTO thumbnail,
         String author,
         String provider,
-        Integer size
+        Integer size,
+        boolean favorited
 ){}

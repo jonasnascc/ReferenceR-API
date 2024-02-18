@@ -40,7 +40,19 @@ public class AlbumsService {
 
     public List<AlbumDTO> getAuthorAlbums(String author, String provider){
         if (provider.equals("deviantart")) {
-            return deviantArtService.findUserAlbums(author);
+            return deviantArtService.findUserAlbums(author).stream().map(dto -> {
+                return new AlbumDTO(
+                        dto.id(),
+                        dto.code(),
+                        dto.name(),
+                        dto.url(),
+                        dto.thumbnail(),
+                        dto.author(),
+                        dto.provider(),
+                        dto.size(),
+                        checkAlbumIsFavorited(dto.code(), "jonas")
+                );
+            }).collect(Collectors.toList());
         }
 
         return Collections.emptyList();
@@ -125,7 +137,7 @@ public class AlbumsService {
         Set<Album> albums = favorites.getAlbums();
         if(albums == null || albums.isEmpty()) return Collections.emptyList();
 
-        return albums.stream().map(this::convertDTO).collect(Collectors.toList());
+        return albums.stream().map(alb -> convertDTO(alb, checkAlbumIsFavorited(alb.getCode(), user.getLogin()))).collect(Collectors.toList());
     }
 
     public PhotoDTO getAlbumThumbnail(Long albumId){
@@ -175,7 +187,23 @@ public class AlbumsService {
         );
     }
 
+    private boolean checkAlbumIsFavorited (String albumCode, String userLogin) {
+        User user = userRepository.findByLogin(userLogin);
+        if(user == null) return false;
+
+        Favorites favorites = user.getFavorites();
+        Set<Album> favoritedAlbums = favorites.getAlbums();
+        Optional<Album> favAlbum = favoritedAlbums.stream().filter(alb -> alb.getCode().equals(albumCode)).findAny();
+
+        return favAlbum.isPresent();
+    }
+
     private AlbumDTO convertDTO(Album album) {
+        return convertDTO(album, false);
+    }
+
+
+    private AlbumDTO convertDTO(Album album, Boolean favorited) {
         return new AlbumDTO(
                 album.getId(),
                 album.getCode(),
@@ -184,7 +212,8 @@ public class AlbumsService {
                 null,
                 album.getAuthor().getName(),
                 album.getProvider().getName(),
-                album.getSize()
+                album.getSize(),
+                favorited
         );
     }
 
