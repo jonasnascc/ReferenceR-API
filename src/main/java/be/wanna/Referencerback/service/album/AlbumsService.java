@@ -161,12 +161,14 @@ public class AlbumsService {
         } else {
             int tokenIndex = thumbDTO.url().indexOf("?token");
 
+            String thumbUrl = thumbDTO.url()
+                    .substring(0, tokenIndex != -1 ? tokenIndex : thumbDTO.url().length());
+
              thumbnail =  photoRepository.save(new Photo(
                      thumbDTO.code(),
                      thumbDTO.title(),
-                     thumbDTO.url().substring(0, tokenIndex != -1 ? tokenIndex : thumbDTO.url().length())
-                     )
-             );
+                     thumbUrl.substring(0, Math.min(thumbUrl.length(), 255))
+             ));
         }
 
         Author author;
