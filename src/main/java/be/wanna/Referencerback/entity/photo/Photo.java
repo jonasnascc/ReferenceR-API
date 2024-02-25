@@ -44,10 +44,11 @@ public class Photo {
     @JsonIgnore
     private Set<Album> albums;
 
-    public Photo(String code, String title, String url) {
+    public Photo(String code, String title, String url, Boolean mature) {
         this.code = code;
         this.title = title;
         this.url = url;
+        this.mature = mature;
     }
 
     public Photo(String code, String title, String url, String photoPage) {

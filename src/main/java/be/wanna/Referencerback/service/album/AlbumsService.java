@@ -50,7 +50,7 @@ public class AlbumsService {
                         dto.author(),
                         dto.provider(),
                         dto.size(),
-                        checkAlbumIsFavorited(dto.code(), "jonas")
+                        checkAlbumIsFavorited(dto.code(), dto.author(), "jonas")
                 );
             }).collect(Collectors.toList());
         }
@@ -79,8 +79,7 @@ public class AlbumsService {
         Album album;
         Optional<Album> optAlbum = albumRepository.findByCodeAndAuthorAndProvider(dto.code(), dto.author(), dto.provider());
 
-        if(optAlbum.isPresent()) album = optAlbum.get();
-        else album = albumRepository.save(convertAlbum(dto));
+        album = optAlbum.orElseGet(() -> albumRepository.save(convertAlbum(dto)));
 
         favorites.addAlbum(album);
 
@@ -137,7 +136,7 @@ public class AlbumsService {
         Set<Album> albums = favorites.getAlbums();
         if(albums == null || albums.isEmpty()) return Collections.emptyList();
 
-        return albums.stream().map(alb -> convertDTO(alb, checkAlbumIsFavorited(alb.getCode(), user.getLogin()))).collect(Collectors.toList());
+        return albums.stream().map(alb -> convertDTO(alb, checkAlbumIsFavorited(alb.getCode(), alb.getAuthor().getName(), user.getLogin()))).collect(Collectors.toList());
     }
 
     public PhotoDTO getAlbumThumbnail(Long albumId){
@@ -167,7 +166,8 @@ public class AlbumsService {
              thumbnail =  photoRepository.save(new Photo(
                      thumbDTO.code(),
                      thumbDTO.title(),
-                     thumbUrl.substring(0, Math.min(thumbUrl.length(), 255))
+                     thumbUrl.substring(0, Math.min(thumbUrl.length(), 255)),
+                     thumbDTO.mature()
              ));
         }
 
@@ -189,13 +189,16 @@ public class AlbumsService {
         );
     }
 
-    private boolean checkAlbumIsFavorited (String albumCode, String userLogin) {
+    private boolean checkAlbumIsFavorited (String albumCode, String authorName, String userLogin) {
         User user = userRepository.findByLogin(userLogin);
         if(user == null) return false;
 
         Favorites favorites = user.getFavorites();
+        if(favorites == null) return false;
         Set<Album> favoritedAlbums = favorites.getAlbums();
-        Optional<Album> favAlbum = favoritedAlbums.stream().filter(alb -> alb.getCode().equals(albumCode)).findAny();
+        Optional<Album> favAlbum = favoritedAlbums.stream().filter(
+                alb -> alb.getCode().equals(albumCode) && alb.getAuthor().getName().equals(authorName)
+        ).findAny();
 
         return favAlbum.isPresent();
     }

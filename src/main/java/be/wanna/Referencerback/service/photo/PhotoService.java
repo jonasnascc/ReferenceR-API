@@ -63,7 +63,7 @@ public class PhotoService {
         if(user == null) throw new RuntimeException("User not found in database.");
 
         Photo photo = photoRepository.findPhotoByCode(dto.code())
-                .orElse(photoRepository.save(new Photo(dto.code(), dto.title(), dto.url())));
+                .orElse(photoRepository.save(new Photo(dto.code(), dto.title(), dto.url(), dto.mature())));
 
         Favorites favorites = user.getFavorites();
         if(favorites == null) favorites = new Favorites();
@@ -95,6 +95,6 @@ public class PhotoService {
 
         favoritesRepository.save(favorites);
 
-        return new PhotoDTO(photo.getId(), photo.getCode(), photo.getUrl(), photo.getTitle());
+        return new PhotoDTO(photo.getId(), photo.getCode(), photo.getUrl(), photo.getTitle(), photo.isMature());
     }
 }
