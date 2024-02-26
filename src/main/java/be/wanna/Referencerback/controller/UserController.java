@@ -4,8 +4,11 @@ import be.wanna.Referencerback.dto.TokenDTO;
 import be.wanna.Referencerback.dto.user.LoginDTO;
 import be.wanna.Referencerback.dto.user.LoginResponseDTO;
 import be.wanna.Referencerback.dto.user.UserDTO;
+import be.wanna.Referencerback.entity.token.Token;
+import be.wanna.Referencerback.entity.token.TokenType;
 import be.wanna.Referencerback.entity.user.User;
 import be.wanna.Referencerback.entity.user.UserRole;
+import be.wanna.Referencerback.repository.TokenRepository;
 import be.wanna.Referencerback.repository.UserRepository;
 import be.wanna.Referencerback.service.authorization.TokenService;
 import lombok.RequiredArgsConstructor;
@@ -28,14 +31,20 @@ public class UserController {
 
     private final TokenService tokenService;
 
+    private final TokenRepository tokenRepository;
+
     @PostMapping("login")
     public ResponseEntity<?> login(
             @RequestBody @Validated LoginDTO dto
     ){
-        UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(dto.login(), dto.password());
+        var usernamePassword = new UsernamePasswordAuthenticationToken(dto.login(), dto.password());
         Authentication auth = authenticationManager.authenticate(usernamePassword);
+        User user = (User)auth.getPrincipal();
 
-        String token = tokenService.generateToken((User)auth.getPrincipal());
+        String token = tokenService.generateToken(user);
+
+        tokenService.revokeAllUserTokens(user);
+        saveUserToken(user, token);
 
         return ResponseEntity.ok(new LoginResponseDTO(token));
     }
@@ -48,10 +57,16 @@ public class UserController {
         String encryptedPassword = new BCryptPasswordEncoder().encode(dto.password());
 
         User newUser = new User(dto.login(), encryptedPassword, UserRole.USER);
+        User savedUser = repository.save(newUser);
 
-        repository.save(newUser);
+        String token = tokenService.generateToken(savedUser);
+        saveUserToken(savedUser, token);
 
         return ResponseEntity.ok().build();
+    }
+
+    private void saveUserToken(User user, String token) {
+        tokenRepository.save(new Token(token, TokenType.BEARER, false, false, user));
     }
 
     @GetMapping("token/validate")

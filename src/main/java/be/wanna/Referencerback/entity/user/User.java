@@ -2,6 +2,7 @@ package be.wanna.Referencerback.entity.user;
 
 import be.wanna.Referencerback.entity.Album;
 import be.wanna.Referencerback.entity.Provider;
+import be.wanna.Referencerback.entity.token.Token;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,7 +30,11 @@ public class User implements UserDetails {
 
     private String password;
 
+    @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    @OneToMany(mappedBy = "user")
+    private List<Token> tokens;
 
     @OneToMany(mappedBy = "user")
     private List<Provider> providers;
