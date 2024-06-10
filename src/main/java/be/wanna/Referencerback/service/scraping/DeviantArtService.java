@@ -1,6 +1,7 @@
 package be.wanna.Referencerback.service.scraping;
 
 import be.wanna.Referencerback.dto.AlbumDTO;
+import be.wanna.Referencerback.dto.AuthorProfileDTO;
 import be.wanna.Referencerback.dto.CsrfResponseDTO;
 import be.wanna.Referencerback.dto.PhotoDTO;
 import be.wanna.Referencerback.dto.deviantArt.TagDTO;
@@ -13,6 +14,7 @@ import be.wanna.Referencerback.dto.deviantArt.deviation.out.DeviationMediaDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.GalResultDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.GalleryInfoDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.ModuleDTO;
+import be.wanna.Referencerback.dto.deviantArt.gallery.ProfileInfoDTO;
 import be.wanna.Referencerback.entity.Author;
 import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.photo.PhotoType;
@@ -41,7 +43,11 @@ public class DeviantArtService {
 
     private final String OFFSET_URL = "https://www.deviantart.com/_puppy/dashared/gallection/contents";
 
-    private final String USER_PROFILE_INFO_URL = "https://www.deviantart.com/_puppy/dauserprofile/init/gallery";
+    private final String USER_GALLERY_INFO_URL = "https://www.deviantart.com/_puppy/dauserprofile/init/gallery";
+
+    private final String USER_PROFILE_INFO_URL = "https://www.deviantart.com/_puppy/dauserprofile/init/about";
+    //username?
+    //csrf_token?
 
     private final String DEVIATION_DETAILS_URL = "https://www.deviantart.com/_puppy/dadeviation/init";
     //?deviationid=1011484517&username=Nightvenjer&type=art&include_session=false&csrf_token=
@@ -106,7 +112,7 @@ public class DeviantArtService {
         params.put("with_subfolders", "true");
         params.put("csrf_token", csrfResponseDTO.csrfToken());
         try(BufferedWriter bw = new BufferedWriter(new FileWriter("./testeUserProf.json"))){
-            Connection.Response  response = Jsoup.connect(USER_PROFILE_INFO_URL)
+            Connection.Response  response = Jsoup.connect(USER_GALLERY_INFO_URL)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
                     .referrer(DEVIATION_DETAILS_URL)
                     .data(params)
@@ -120,6 +126,50 @@ public class DeviantArtService {
             bw.write(gson.toJson(galleryInfoDTO));
 
             return galleryInfoDTO;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public AuthorProfileDTO getAuthorProfile(String authorName){
+        ProfileInfoDTO profileInfo = getUsersProfileInfo(authorName);
+        if(profileInfo==null) return null;
+
+        return new AuthorProfileDTO(
+                profileInfo.owner().usericon(),
+                profileInfo.pageExtraData().gruserTagline(),
+                profileInfo.owner().username(),
+                profileInfo.pageExtraData().stats().deviations(),
+                profileInfo.pageExtraData().stats().watchers(),
+                profileInfo.pageExtraData().stats().watching(),
+                profileInfo.pageExtraData().stats().pageviews(),
+                profileInfo.pageExtraData().stats().favourites()
+        );
+    }
+
+    private ProfileInfoDTO getUsersProfileInfo(String authorName){
+        CsrfResponseDTO csrfResponseDTO = getCsrfResponse(authorName);
+
+        Map<String, String> params = new HashMap<>();
+        params.put("username", authorName);
+        params.put("csrf_token", csrfResponseDTO.csrfToken());
+
+        try(BufferedWriter bw = new BufferedWriter(new FileWriter("./testeUserProf.json"))){
+            Connection.Response  response = Jsoup.connect(USER_PROFILE_INFO_URL)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
+                    .referrer(DEVIATION_DETAILS_URL)
+                    .data(params)
+                    .method(Connection.Method.GET)
+                    .ignoreContentType(true)
+                    .cookies(csrfResponseDTO.cookies())
+                    .execute();
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            ProfileInfoDTO profileInfoDTO = gson.fromJson(response.body(), ProfileInfoDTO.class);
+            bw.write(gson.toJson(profileInfoDTO));
+
+            return profileInfoDTO;
         } catch (Exception e) {
             e.printStackTrace();
         }

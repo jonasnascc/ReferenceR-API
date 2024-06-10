@@ -1,17 +1,22 @@
 package be.wanna.Referencerback.controller;
 
-import org.springframework.http.HttpStatus;
+import be.wanna.Referencerback.service.author.AuthorService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/author/")
+@RequiredArgsConstructor
 public class AuthorController {
-    @GetMapping("{author}")
+    private final AuthorService service;
+
+    @GetMapping(value = "{authorName}", produces = {"application/json"})
     public ResponseEntity<?> getAuthor(
             @RequestHeader("Resources-provider") String provider,
-            @PathVariable String author
+            @PathVariable String authorName
     ){
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok(service.getAuthorProfile(authorName));
     }
 }
