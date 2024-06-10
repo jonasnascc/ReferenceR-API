@@ -1,0 +1,90 @@
+{
+  "gruser": {
+    "page": {
+      "modules": [
+        {
+          "position": 1,
+          "name": "watchers",
+          "moduleData": {
+            "dataKey": "watchers"
+          }
+        },
+        {
+          "position": 2,
+          "name": "watching",
+          "moduleData": {
+            "dataKey": "watching"
+          }
+        },
+        {
+          "position": 3,
+          "name": "group_list_admins",
+          "moduleData": {
+            "dataKey": "group_list_admins"
+          }
+        },
+        {
+          "position": 4,
+          "name": "group_list_members",
+          "moduleData": {
+            "dataKey": "group_list_members"
+          }
+        },
+        {
+          "position": 5,
+          "name": "badges_activity",
+          "moduleData": {
+            "dataKey": "badges_activity"
+          }
+        },
+        {
+          "position": 6,
+          "name": "my_comments",
+          "moduleData": {
+            "dataKey": "my_comments"
+          }
+        },
+        {
+          "position": 1,
+          "name": "userstats",
+          "moduleData": {
+            "dataKey": "userstats"
+          }
+        },
+        {
+          "position": 1,
+          "name": "about",
+          "moduleData": {
+            "dataKey": "about"
+          }
+        },
+        {
+          "position": 1,
+          "name": "cover_deviation",
+          "moduleData": {
+            "dataKey": "cover_deviation",
+            "coverDeviation": {
+              "deviationId": 0,
+              "isMature": false
+            }
+          }
+        }
+      ]
+    }
+  },
+  "owner": {
+    "username": "unknown",
+    "usericon": "https://a.deviantart.net/avatars-big/default.gif"
+  },
+  "pageExtraData": {
+    "gruserUrl": "https://www.deviantart.com/unknown",
+    "gruserTagline": "Enrico cortez",
+    "stats": {
+      "deviations": 2,
+      "watchers": 24,
+      "watching": 0,
+      "pageviews": 14134,
+      "favourites": 0
+    }
+  }
+}
