@@ -26,17 +26,22 @@ public class SecurityConfigurations {
 
     private final LogoutHandler logoutHandler;
 
+    public static final String[] AUTH_NOT_REQUIRED_ENDPOINTS = {
+            "/api/author/{author}/albums",
+            "/api/author/{author}",
+            "/api/author/{author}/albums/{albumCode}/photos",
+            "/api/deviations/**",
+            "/api/users/login",
+            "/api/users/register"
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
-//                                .requestMatchers(HttpMethod.POST, "/pathname").hasRole("ADMIN") ==example==
-                                .requestMatchers(HttpMethod.POST, "/h2/*").permitAll()    //remove in production environment
-                                .requestMatchers(HttpMethod.GET, "/h2/*").permitAll()     //remove in production environment
+                                .requestMatchers(AUTH_NOT_REQUIRED_ENDPOINTS).permitAll()
                                 .anyRequest().authenticated()
 
                 )

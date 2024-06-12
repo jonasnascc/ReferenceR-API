@@ -1,6 +1,7 @@
 package be.wanna.Referencerback.service.album;
 
 import be.wanna.Referencerback.dto.AlbumDTO;
+import be.wanna.Referencerback.dto.AlbumFavouriteDTO;
 import be.wanna.Referencerback.dto.AuthorDTO;
 import be.wanna.Referencerback.dto.PhotoDTO;
 import be.wanna.Referencerback.entity.Album;
@@ -14,7 +15,9 @@ import be.wanna.Referencerback.service.author.AuthorService;
 import be.wanna.Referencerback.service.scraping.DeviantArtService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.html.Option;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,7 +70,8 @@ public class AlbumsService {
 
     }
 
-    public Long favoriteAlbum(AlbumDTO dto, String login) {
+    @Transactional
+    public Long favoriteAlbum(AlbumFavouriteDTO dto, String login) {
         User user = userRepository.findByLogin(login);
         if(user == null) throw new RuntimeException("User not found in database.");
 
@@ -75,11 +79,24 @@ public class AlbumsService {
         if(favorites==null){
             favorites = new Favorites();
         }
+        AlbumDTO albumDto = dto.album();
 
         Album album;
-        Optional<Album> optAlbum = albumRepository.findByCodeAndAuthorAndProvider(dto.code(), dto.author(), dto.provider());
 
-        album = optAlbum.orElseGet(() -> albumRepository.save(convertAlbum(dto)));
+        Optional<Album> optAlbum = albumRepository.findByCodeAndAuthorAndProvider(albumDto.code(), albumDto.author(), albumDto.provider());
+
+        if(optAlbum.isEmpty()) {
+            Album toSaveAlbum = convertAlbum(albumDto);
+//            List<String> except = dto.except();
+//            if(except!=null) {
+//                Set<Photo> photos = toSaveAlbum.getPhotos();
+//                toSaveAlbum.setPhotos(photos.stream()
+//                        .filter(ph -> except.stream().anyMatch(code -> code.equals(ph.getCode())))
+//                        .collect(Collectors.toSet()));
+//            }
+            album = albumRepository.save(toSaveAlbum);
+        }
+        else album = optAlbum.get();
 
         favorites.addAlbum(album);
 

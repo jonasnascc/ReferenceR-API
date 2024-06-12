@@ -1,6 +1,7 @@
 package be.wanna.Referencerback.controller;
 
 import be.wanna.Referencerback.dto.AlbumDTO;
+import be.wanna.Referencerback.dto.AlbumFavouriteDTO;
 import be.wanna.Referencerback.service.album.AlbumsService;
 import be.wanna.Referencerback.service.authorization.TokenService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class AlbumController {
     @PostMapping("albums/favorite")
     public ResponseEntity<?> favoriteAlbum(
             @RequestHeader("Authorization") String authorization,
-            @RequestBody AlbumDTO dto
+            @RequestBody AlbumFavouriteDTO dto
     ) {
         String login = tokenService.validateToken(authorization);
 
