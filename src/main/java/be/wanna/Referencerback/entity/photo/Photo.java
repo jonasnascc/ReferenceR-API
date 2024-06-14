@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,6 +40,8 @@ public class Photo {
     private String photoPage;
 
     private String license;
+
+    private Date publishedTime;
 
     @ManyToMany(mappedBy = "photos")
     @JsonIgnore

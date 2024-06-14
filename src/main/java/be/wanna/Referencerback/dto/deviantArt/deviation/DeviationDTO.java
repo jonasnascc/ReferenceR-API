@@ -28,6 +28,8 @@ public class DeviationDTO {
 
     private MediaDTO media;
 
+    private String publishedTime;
+
 
     @Override
     public String toString() {

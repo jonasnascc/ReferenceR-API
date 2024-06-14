@@ -31,6 +31,8 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -240,7 +242,6 @@ public class DeviantArtService {
                     .ignoreContentType(true)
                     .cookies(csrfResponseDTO.cookies())
                     .get();
-
         } catch (IOException e) {
             e.printStackTrace();
             //return getOffSet(number, album);
@@ -266,6 +267,7 @@ public class DeviantArtService {
     private CsrfResponseDTO getCsrfResponse(String authorName) {
         try {
             org.jsoup.Connection.Response response = Jsoup.connect("https://www.deviantart.com/%s/gallery".formatted(authorName))
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
                     .method(org.jsoup.Connection.Method.GET)
                     .execute();
 
@@ -286,10 +288,8 @@ public class DeviantArtService {
         params.put("offset", Integer.toString(number));
         params.put("limit", Integer.toString(limit));
 
-        if(albumId.contains(authorName))
-            if(authorName.equals("All")){
-                params.put("all_folder", "true");
-            } else return Collections.emptyMap();
+        if(albumId.contains("all"))
+            params.put("all_folder", "true");
         else params.put("folderid", getAlbumIdStr(albumId));
 
         params.put("csrf_token", csrfToken);
@@ -396,6 +396,15 @@ public class DeviantArtService {
         deviation.setMatureLevel(dto.getMatureLevel());
         deviation.setLicense(dto.getLicense());
         deviation.setType(PhotoType.DEVIATION);
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+
+        Date date = null;
+        try {
+            date = format.parse(dto.getPublishedTime());
+        } catch (ParseException ignored) {}
+
+        deviation.setPublishedTime(date);
 
         deviation.setUrl(getDeviationDownloadUrl(dto));
         if(maxThumbsize!=null) deviation.setThumbUrl(getDeviationDownloadUrl(dto, maxThumbsize));
