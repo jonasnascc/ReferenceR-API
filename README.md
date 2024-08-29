@@ -20,10 +20,6 @@ A great way to practice gestures is to draw as many pose references as possible.
 
 #### References
 
-![gest1](https://github.com/user-attachments/assets/b58f978a-6f2d-47bb-8c32-ce0d6cf55c36)
-
-![gest2](https://github.com/user-attachments/assets/39834819-b647-40e7-8133-cbf1873e227f)
-
-![gest3](https://github.com/user-attachments/assets/e5f8a98c-db81-4682-b9fd-e6464583ddb2)
+![gest1](https://github.com/user-attachments/assets/b58f978a-6f2d-47bb-8c32-ce0d6cf55c36) ![gest2](https://github.com/user-attachments/assets/39834819-b647-40e7-8133-cbf1873e227f) ![gest3](https://github.com/user-attachments/assets/e5f8a98c-db81-4682-b9fd-e6464583ddb2)
 
 [Gesture Drawing | Tips for Expressive and Dynamic Poses](https://youtu.be/D2gOtDcb8sc)
