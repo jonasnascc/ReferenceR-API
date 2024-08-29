@@ -1,4 +1,4 @@
-### ReferenceR
+## ReferenceR
 
 An application designed to be a tool for artists looking for inspiration to start or finish a work of art.
 
