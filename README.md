@@ -18,8 +18,6 @@ It's no secret that the more you practice a technique, the more you master it, a
 
 A great way to practice gestures is to draw as many pose references as possible. In a short period of time, you can analyze the flow of the drawing and identify the lines of action. What artists do is impose a period of time on each reference to study it and extract its essence. Usually, this time is short, like 30 seconds, and in that time the artist can sketch each pose, and thus gain some experience. This practice greatly improves the development of future drawings.
 
-#### References
-
 ![gest1](https://github.com/user-attachments/assets/b58f978a-6f2d-47bb-8c32-ce0d6cf55c36) ![gest2](https://github.com/user-attachments/assets/39834819-b647-40e7-8133-cbf1873e227f) ![gest3](https://github.com/user-attachments/assets/e5f8a98c-db81-4682-b9fd-e6464583ddb2)
 
 [Gesture Drawing | Tips for Expressive and Dynamic Poses](https://youtu.be/D2gOtDcb8sc)
