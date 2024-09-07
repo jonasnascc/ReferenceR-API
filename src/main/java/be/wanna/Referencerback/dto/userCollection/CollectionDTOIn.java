@@ -1,4 +1,7 @@
-package be.wanna.Referencerback.dto;
+package be.wanna.Referencerback.dto.userCollection;
+
+import be.wanna.Referencerback.dto.AlbumCollectionDTO;
+import be.wanna.Referencerback.dto.PhotoDTO;
 
 import java.util.Set;
 

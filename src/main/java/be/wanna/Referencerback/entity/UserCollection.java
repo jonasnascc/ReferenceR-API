@@ -36,4 +36,11 @@ public class UserCollection {
         this.description = description;
         this.photos = photos;
     }
+
+    public UserCollection(Long id, String name, String description, Set<Photo> photos) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.photos = photos;
+    }
 }

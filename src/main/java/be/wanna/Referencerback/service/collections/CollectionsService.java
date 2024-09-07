@@ -1,7 +1,8 @@
 package be.wanna.Referencerback.service.collections;
 
-import be.wanna.Referencerback.dto.CollectionDTOIn;
+import be.wanna.Referencerback.dto.userCollection.CollectionDTOIn;
 import be.wanna.Referencerback.dto.PhotoDTO;
+import be.wanna.Referencerback.dto.userCollection.CollectionDTOOut;
 import be.wanna.Referencerback.entity.UserCollection;
 import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.user.User;
@@ -9,12 +10,12 @@ import be.wanna.Referencerback.repository.CollectionRepository;
 import be.wanna.Referencerback.repository.PhotoRepository;
 import be.wanna.Referencerback.repository.UserRepository;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,6 +51,59 @@ public class CollectionsService {
         collection.setUser(savedUser);
 
         return repository.save(col).getId();
+    }
+
+    public List<CollectionDTOOut> list(String login) {
+        User user = checkUser(login);
+        return repository.findByUser(user).stream()
+                .map(this::convertCollection).collect(Collectors.toList());
+    }
+
+    public CollectionDTOOut find(String login, Long id){
+        User user = checkUser(login);
+        UserCollection col = repository.findByUserAndId(user, id);
+
+        if(col == null) throw new RuntimeException("Collection not found.");
+
+        return  convertCollection(col);
+    }
+
+    @Transactional
+    public Long update(String login, Long id, CollectionDTOIn dto) {
+        User user = checkUser(login);
+        UserCollection saved =  repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Collection not found."));
+
+        UserCollection collection = new UserCollection(
+                dto.name(),
+                dto.description(),
+                dto.photos()==null ?
+                        Collections.emptySet()
+                        :
+                        dto.photos().stream().map(this::convertPhotoDtoPersist).collect(Collectors.toSet())
+        );
+
+        collection.setId(saved.getId());
+        collection.setUser(user);
+
+        return repository.save(collection).getId();
+
+    }
+
+    public void delete(String login, Long id){
+        User user = checkUser(login);
+        UserCollection col = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Collection not found."));
+
+        repository.delete(col);
+    }
+
+    private CollectionDTOOut convertCollection(UserCollection collection) {
+        return new CollectionDTOOut(
+                collection.getId(),
+                collection.getName(),
+                collection.getDescription()
+        );
     }
 
     @Transactional
