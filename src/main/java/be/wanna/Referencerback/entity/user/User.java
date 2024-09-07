@@ -2,6 +2,7 @@ package be.wanna.Referencerback.entity.user;
 
 import be.wanna.Referencerback.entity.Album;
 import be.wanna.Referencerback.entity.Provider;
+import be.wanna.Referencerback.entity.UserCollection;
 import be.wanna.Referencerback.entity.token.Token;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -13,7 +14,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -42,6 +45,9 @@ public class User implements UserDetails {
     @OneToOne
     private Favorites favorites;
 
+    @OneToMany(mappedBy = "user")
+    private Set<UserCollection> collections;
+
 
     public User(String username, String password) {
         this.login = username;
@@ -52,6 +58,18 @@ public class User implements UserDetails {
         this.login = login;
         this.password = password;
         this.role = role;
+    }
+
+    public void addCollection(UserCollection collection) {
+        if(collection == null) return;
+        if(collections == null) collections = new HashSet<>();
+        collections.add(collection);
+    }
+
+    public void removeCollection(Long id) {
+        if(collections != null) {
+            collections.removeIf(col -> col.getId().equals(id));
+        }
     }
 
     @Override

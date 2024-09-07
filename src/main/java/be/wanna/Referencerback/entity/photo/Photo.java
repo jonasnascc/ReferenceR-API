@@ -1,13 +1,13 @@
 package be.wanna.Referencerback.entity.photo;
 
 import be.wanna.Referencerback.entity.Album;
+import be.wanna.Referencerback.entity.UserCollection;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -46,6 +46,10 @@ public class Photo {
     @ManyToMany(mappedBy = "photos")
     @JsonIgnore
     private Set<Album> albums;
+
+    @ManyToMany
+    @JsonIgnore
+    private Set<UserCollection> collections;
 
     public Photo(String code, String title, String url, Boolean mature) {
         this.code = code;
