@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -42,5 +43,16 @@ public class UserCollection {
         this.name = name;
         this.description = description;
         this.photos = photos;
+    }
+
+    public void addPhoto(Photo p) {
+        if(photos == null) photos = new HashSet<>();
+        if(photos.stream().noneMatch(ph -> ph.getCode().equals(p.getCode()))){
+            photos.add(p);
+        }
+    }
+
+    public void removePhoto(Long id) {
+        if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));
     }
 }

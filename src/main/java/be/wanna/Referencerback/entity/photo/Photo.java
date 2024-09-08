@@ -43,6 +43,8 @@ public class Photo {
 
     private Date publishedTime;
 
+    private Integer page;
+
     @ManyToMany(mappedBy = "photos")
     @JsonIgnore
     private Set<Album> albums;
@@ -50,6 +52,11 @@ public class Photo {
     @ManyToMany
     @JsonIgnore
     private Set<UserCollection> collections;
+
+    public Photo(String code, Integer page) {
+        this.code = code;
+        this.page = page;
+    }
 
     public Photo(String code, String title, String url, Boolean mature) {
         this.code = code;

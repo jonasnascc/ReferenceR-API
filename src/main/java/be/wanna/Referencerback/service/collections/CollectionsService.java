@@ -1,8 +1,10 @@
 package be.wanna.Referencerback.service.collections;
 
+import be.wanna.Referencerback.dto.userCollection.AlbumCollectionDTO;
 import be.wanna.Referencerback.dto.userCollection.CollectionDTOIn;
 import be.wanna.Referencerback.dto.PhotoDTO;
 import be.wanna.Referencerback.dto.userCollection.CollectionDTOOut;
+import be.wanna.Referencerback.dto.userCollection.PhotoByPageDTO;
 import be.wanna.Referencerback.entity.UserCollection;
 import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.user.User;
@@ -13,17 +15,13 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class CollectionsService {
     private final CollectionRepository repository;
-
     private final UserRepository userRepository;
 
     private final PhotoRepository photoRepository;
@@ -98,11 +96,32 @@ public class CollectionsService {
         repository.delete(col);
     }
 
+    @Transactional
+    public void addPhotos(String login, Long id, AlbumCollectionDTO dto){
+        User user = checkUser(login);
+        UserCollection collection = repository.findByUserAndId(user, id);
+        if(collection == null) throw  new RuntimeException("Collection not found.");
+
+        if(dto.photos() != null)
+            dto.photos().forEach(ph -> collection.addPhoto(
+                    convertPhotoDtoPersist(
+                            convertPhotoByCodeDtoToPhotoDto(ph))
+                    )
+            );
+    }
+
     private CollectionDTOOut convertCollection(UserCollection collection) {
         return new CollectionDTOOut(
                 collection.getId(),
                 collection.getName(),
                 collection.getDescription()
+        );
+    }
+
+    private PhotoDTO convertPhotoByCodeDtoToPhotoDto(PhotoByPageDTO dto) {
+        return new PhotoDTO(
+                dto.code(),
+                dto.page()
         );
     }
 
