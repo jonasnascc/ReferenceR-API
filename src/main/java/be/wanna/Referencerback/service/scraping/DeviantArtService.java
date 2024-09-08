@@ -299,7 +299,7 @@ public class DeviantArtService {
     }
 
     private PhotoDTO convertDeviationToPhotoDTO(Photo deviation) {
-        return new PhotoDTO(deviation.getId(), deviation.getCode(), deviation.getUrl(), deviation.getTitle(), deviation.isMature());
+        return new PhotoDTO(deviation.getId(), deviation.getCode(), deviation.getUrl(), deviation.getTitle(), deviation.getMature());
     }
 
     public DeviationMediaDTO getDeviationInfoByUrl(String url){
@@ -502,7 +502,7 @@ public class DeviantArtService {
                 deviation.getCode(),
                 infoByUrl.thumbnail_url(),
                 deviation.getTitle(),
-                deviation.isMature()
+                deviation.getMature()
         );
     }
 }

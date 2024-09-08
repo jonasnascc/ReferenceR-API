@@ -108,6 +108,14 @@ public class CollectionsService {
                             convertPhotoByCodeDtoToPhotoDto(ph))
                     )
             );
+
+        UserCollection saved = repository.save(collection);
+
+        collection.getPhotos().forEach(ph -> {
+            ph.addCollection(saved);
+        });
+
+        photoRepository.saveAll(collection.getPhotos());
     }
 
     private CollectionDTOOut convertCollection(UserCollection collection) {
@@ -145,7 +153,15 @@ public class CollectionsService {
     }
 
     private Photo persistPhoto(Photo photo) {
-        return photoRepository.findPhotoByCode(photo.getCode()).orElse(photoRepository.save(photo));
+        Optional<Photo> opt = photoRepository.findPhotoByCode(photo.getCode());
+
+        if(opt.isEmpty()) return photoRepository.save(photo);
+
+        Photo ph = opt.get();
+
+        if(ph.getCode()==null && photo.getCode()!=null) ph.setCode(photo.getCode());
+
+        return ph;
     }
 
     private User checkUser(String login){

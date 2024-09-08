@@ -29,7 +29,7 @@ public class Photo {
 
     private String url;
 
-    private boolean mature;
+    private Boolean mature;
 
     private PhotoType type;
 
@@ -80,6 +80,13 @@ public class Photo {
             }
         }
         albums.add(album);
+    }
+
+    public void addCollection(UserCollection collection) {
+        if(collections == null) collections = new HashSet<>();
+        if(collections.stream().noneMatch(col -> collection.getId().equals(col.getId()))){
+            collections.add(collection);
+        }
     }
 
 }

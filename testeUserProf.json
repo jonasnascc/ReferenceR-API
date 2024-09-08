@@ -4,76 +4,33 @@
       "modules": [
         {
           "position": 1,
-          "name": "watchers",
+          "name": "folders",
           "moduleData": {
-            "dataKey": "watchers"
-          }
-        },
-        {
-          "position": 2,
-          "name": "watching",
-          "moduleData": {
-            "dataKey": "watching"
-          }
-        },
-        {
-          "position": 5,
-          "name": "badges_activity",
-          "moduleData": {
-            "dataKey": "badges_activity"
-          }
-        },
-        {
-          "position": 6,
-          "name": "my_comments",
-          "moduleData": {
-            "dataKey": "my_comments"
-          }
-        },
-        {
-          "position": 1,
-          "name": "userstats",
-          "moduleData": {
-            "dataKey": "userstats"
-          }
-        },
-        {
-          "position": 1,
-          "name": "about",
-          "moduleData": {
-            "dataKey": "about"
-          }
-        },
-        {
-          "position": 1,
-          "name": "cover_deviation",
-          "moduleData": {
-            "dataKey": "cover_deviation",
-            "coverDeviation": {
-              "deviationId": 0,
-              "isMature": false
-            }
-          }
-        }
-      ]
-    }
-  },
-  "owner": {
-    "username": "faestock",
-    "usericon": "https://a.deviantart.net/avatars-big/f/a/faestock.jpg?5"
-  },
-  "pageExtraData": {
-    "gruserUrl": "https://www.deviantart.com/faestock",
-    "gruserTagline": "https://faestock.com",
-    "stats": {
-      "deviations": 1571,
-      "watchers": 86927,
-      "watching": 1723,
-      "pageviews": 10548677,
-      "favourites": 60052
-    }
-  }
-}E5LTQzNzQtYjY0ZS03MjVkMzVjMGI1MWEuanBnIiwid2lkdGgiOiI8PTEwMjQifV1dLCJhdWQiOlsidXJuOnNlcnZpY2U6aW1hZ2Uub3BlcmF0aW9ucyJdfQ.FLJHutHQ6hrosxdQ8oaeaSfoaKUxsj4PSGTcQ82Ttuo"
+            "dataKey": "folders",
+            "folders": {
+              "results": [
+                {
+                  "folderId": -1,
+                  "type": "gallery",
+                  "name": "All",
+                  "description": "All Artworks",
+                  "size": 1571,
+                  "thumb": {
+                    "deviationId": 1025636931,
+                    "title": "Wanderer - fantasy model stock reference pose 4",
+                    "type": "image",
+                    "url": "https://www.deviantart.com/faestock/art/Wanderer-fantasy-model-stock-reference-pose-4-1025636931",
+                    "isMature": false,
+                    "license": "none",
+                    "author": {
+                      "userId": 2389710,
+                      "username": "faestock"
+                    },
+                    "media": {
+                      "baseUri": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/33f8a0b4-8fd1-4907-96a3-7e90e9df0ddd/dgymyir-2e6e2bb2-ec19-4374-b64e-725d35c0b51a.jpg",
+                      "prettyName": "wanderer___fantasy_model_stock_reference_pose_4_by_faestock_dgymyir",
+                      "token": [
+                        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9MTYxNCIsInBhdGgiOiJcL2ZcLzMzZjhhMGI0LThmZDEtNDkwNy05NmEzLTdlOTBlOWRmMGRkZFwvZGd5bXlpci0yZTZlMmJiMi1lYzE5LTQzNzQtYjY0ZS03MjVkMzVjMGI1MWEuanBnIiwid2lkdGgiOiI8PTEwMjQifV1dLCJhdWQiOlsidXJuOnNlcnZpY2U6aW1hZ2Uub3BlcmF0aW9ucyJdfQ.FLJHutHQ6hrosxdQ8oaeaSfoaKUxsj4PSGTcQ82Ttuo"
                       ],
                       "types": [
                         {
