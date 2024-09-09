@@ -1,6 +1,6 @@
 package be.wanna.Referencerback.dto.userCollection;
 
-public record PhotoByPageDTO (
+public record UserCollectionPhotoDTO(
         String code,
         Integer page
 ){}

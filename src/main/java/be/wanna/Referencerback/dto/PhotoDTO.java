@@ -6,7 +6,6 @@ public record PhotoDTO (
         String url,
         String title,
         Integer page,
-        String albumCode,
         Boolean mature
 ) {
     public PhotoDTO (
@@ -16,13 +15,13 @@ public record PhotoDTO (
             String title,
             Boolean mature
     ){
-        this(id, code, url, title, null, null, mature);
+        this(id, code, url, title, null, mature);
     }
 
     public PhotoDTO (
             String code,
             Integer page
     ){
-        this(null, code, null, null, page, null, null);
+        this(null, code, null, null, page, null);
     }
 }

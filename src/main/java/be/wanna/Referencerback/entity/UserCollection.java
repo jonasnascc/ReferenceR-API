@@ -32,6 +32,11 @@ public class UserCollection {
     @ManyToMany(mappedBy = "collections")
     private Set<Photo> photos;
 
+    public UserCollection(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+
     public UserCollection(String name, String description, Set<Photo> photos) {
         this.name = name;
         this.description = description;

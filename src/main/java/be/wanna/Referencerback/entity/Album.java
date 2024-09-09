@@ -61,6 +61,13 @@ public class Album {
         this.provider = provider;
     }
 
+    public Album(String code, String name, String url, Integer size) {
+        this.code = code;
+        this.name = name;
+        this.url = url;
+        this.size = size;
+    }
+
     @Override
     public String toString() {
         return "Album{" +

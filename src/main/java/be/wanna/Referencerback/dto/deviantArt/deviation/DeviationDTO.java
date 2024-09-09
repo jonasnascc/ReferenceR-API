@@ -30,6 +30,8 @@ public class DeviationDTO {
 
     private String publishedTime;
 
+    private Integer page;
+
 
     @Override
     public String toString() {

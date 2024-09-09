@@ -65,12 +65,22 @@ public class Photo {
         this.mature = mature;
     }
 
+    public Photo(String code, String title, String url, Boolean mature, Integer page) {
+        this.code = code;
+        this.title = title;
+        this.url = url;
+        this.mature = mature;
+        this.page = page;
+    }
+
     public Photo(String code, String title, String url, String photoPage) {
         this.code = code;
         this.title = title;
         this.url = url;
         this.photoPage = photoPage;
     }
+
+
 
     public void addAlbum(Album album){
         if(albums == null) albums = new HashSet<>();

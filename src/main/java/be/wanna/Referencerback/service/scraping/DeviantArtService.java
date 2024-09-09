@@ -102,7 +102,10 @@ public class DeviantArtService {
         }
         else return Collections.emptySet();
 
-        return setDeviations;
+        return setDeviations.stream().map(dev -> {
+            dev.setPage(page);
+            return dev;
+        }).collect(Collectors.toSet());
     }
 
     private GalleryInfoDTO getUserGalleryInfo(String authorName){
@@ -396,6 +399,7 @@ public class DeviantArtService {
         deviation.setMatureLevel(dto.getMatureLevel());
         deviation.setLicense(dto.getLicense());
         deviation.setType(PhotoType.DEVIATION);
+        deviation.setPage(dto.getPage());
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
