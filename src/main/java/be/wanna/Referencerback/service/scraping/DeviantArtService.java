@@ -66,8 +66,8 @@ public class DeviantArtService {
             if(results!=null){
                 results.forEach(res -> {
                     String id  = Integer.toString(res.folderId());
-                    if(id.equals("-1")) id = "all";
-                    else if(id.equals("-2")) id = "scraps";
+                    if(id.equals("-1")) id = "all".concat(":").concat(author.toLowerCase());
+                    else if(id.equals("-2")) id = "scraps".concat(":").concat(author.toLowerCase());
 
                     String albumUrl = "https://www.deviantart.com/" + author + "/gallery/" + id;
                     albums.add(
@@ -322,7 +322,7 @@ public class DeviantArtService {
         params.put("offset", Integer.toString(number));
         params.put("limit", Integer.toString(limit));
 
-        if(albumId.contains("all"))
+        if(albumId.startsWith("all"))
             params.put("all_folder", "true");
         else params.put("folderid", getAlbumIdStr(albumId));
 
