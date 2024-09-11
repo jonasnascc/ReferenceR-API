@@ -157,9 +157,10 @@ public class CollectionsService {
         Optional<Album> optionalAlbum = albumRepository.findById(albumId);
         if(optionalAlbum.isEmpty()) throw new RuntimeException("Album not found.");
 
-
         Album album = optionalAlbum.get();
-        Set<Photo> photos = album.getPhotos();
+        Set<Photo> photos = collection.getPhotos().stream()
+                .filter(ph -> album.getPhotos().stream().anyMatch(albph -> albph.getCode().equals(ph.getCode())))
+                .collect(Collectors.toSet());
 
         Map<Integer, Set<Photo>> photosByPages = new HashMap<>();
 
@@ -174,13 +175,19 @@ public class CollectionsService {
         List<Photo> photosArray = new ArrayList<>();
 
         photosByPages.keySet().forEach(page -> {
-            photosArray.addAll(dvArtService.listAlbumPhotosByPage(
+            Set<Photo> toAdd = dvArtService.listAlbumPhotosByPage(
                     album.getCode(),
                     album.getAuthor().getName(),
                     page,
                     50,
                     500
-            ));
+            );
+
+            Set<String> pagePhotos = new HashSet<>();
+
+            photosByPages.get(page).forEach(photo -> pagePhotos.add(photo.getCode()));
+
+            photosArray.addAll(toAdd.stream().filter(photo -> pagePhotos.contains(photo.getCode())).collect(Collectors.toSet()));
         });
 
         return photosArray;
@@ -192,12 +199,14 @@ public class CollectionsService {
         UserCollection collection = repository.findByUserAndId(user, id);
         if(collection==null) throw new RuntimeException("Collection not found.");
 
+        Set<Photo> collectionPhotos = collection.getPhotos();
+
         Map<String, Album> albumsMap = new HashMap<>();
 
         Map<String, Set<Integer>> albumCodeByPages = new HashMap<>();
 
         Map<String, List<Photo>> albumCodeByPhotoMap = new HashMap<>();
-        collection.getPhotos().forEach(ph -> {
+        collectionPhotos.forEach(ph -> {
             ph.getAlbums().forEach(alb -> {
                 if(!albumsMap.containsKey(alb.getCode())) {
                     albumsMap.put(alb.getCode(), alb);
