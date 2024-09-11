@@ -1,12 +1,23 @@
 package be.wanna.Referencerback.dto;
 
+import be.wanna.Referencerback.entity.photo.PhotoType;
+
+import java.util.Date;
+
 public record PhotoDTO (
-        Long id,
-        String code,
-        String url,
-        String title,
-        Integer page,
-        Boolean mature
+    Long id,
+    String code,
+    String url,
+    String title,
+    Boolean mature,
+    PhotoType type,
+    String thumbUrl,
+    String matureLevel,
+    String photoPage,
+    String license,
+    Date publishedTime,
+
+    Integer page
 ) {
     public PhotoDTO (
             Long id,
@@ -15,13 +26,19 @@ public record PhotoDTO (
             String title,
             Boolean mature
     ){
-        this(id, code, url, title, null, mature);
+        this(id,
+                code,
+                url,
+                title,
+                mature,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
     }
 
-    public PhotoDTO (
-            String code,
-            Integer page
-    ){
-        this(null, code, null, null, page, null);
-    }
 }

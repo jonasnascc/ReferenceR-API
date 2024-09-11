@@ -2,6 +2,7 @@ package be.wanna.Referencerback.entity;
 
 import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,7 +30,8 @@ public class UserCollection {
     @ManyToOne
     private User user;
 
-    @ManyToMany(mappedBy = "collections")
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Photo> photos;
 
     public UserCollection(String name, String description) {

@@ -4,38 +4,90 @@
       "modules": [
         {
           "position": 1,
-          "name": "folders",
+          "name": "watchers",
           "moduleData": {
-            "dataKey": "folders",
-            "folders": {
-              "results": [
-                {
-                  "folderId": -1,
-                  "type": "gallery",
-                  "name": "All",
-                  "description": "All Artworks",
-                  "size": 1245,
-                  "thumb": {
-                    "deviationId": 794870629,
-                    "title": "Belly Dancing - Fan Veils - Closed - Crisscrossed",
-                    "type": "image",
-                    "url": "https://www.deviantart.com/danika-stock/art/Belly-Dancing-Fan-Veils-Closed-Crisscrossed-794870629",
-                    "isMature": false,
-                    "license": "by-nc",
-                    "author": {
-                      "userId": 27017023,
-                      "username": "Danika-Stock"
-                    },
-                    "media": {
-                      "baseUri": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/d6a1b13c-229d-4c4a-9d4c-f24242cfeda8/dd58u3p-5fad5034-eb5b-4307-b82b-3885cd5190e0.jpg",
-                      "prettyName": "belly_dancing___fan_veils___closed___crisscrossed_by_danika_stock_dd58u3p",
-                      "token": [
-                        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9MTA0MCIsInBhdGgiOiJcL2ZcL2Q2YTFiMTNjLTIyOWQtNGM0YS05ZDRjLWYyNDI0MmNmZWRhOFwvZGQ1OHUzcC01ZmFkNTAzNC1lYjViLTQzMDctYjgyYi0zODg1Y2Q1MTkwZTAuanBnIiwid2lkdGgiOiI8PTkwMCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.w4vsRmOBNinvj5n_N4YYbj8X_eEXSpdwSUOvDLxYL4w"
-                      ],
-                      "types": [
-                        {
-                          "t": "150",
-                          "r": 0,
+            "dataKey": "watchers"
+          }
+        },
+        {
+          "position": 2,
+          "name": "watching",
+          "moduleData": {
+            "dataKey": "watching"
+          }
+        },
+        {
+          "position": 3,
+          "name": "group_list_admins",
+          "moduleData": {
+            "dataKey": "group_list_admins"
+          }
+        },
+        {
+          "position": 4,
+          "name": "group_list_members",
+          "moduleData": {
+            "dataKey": "group_list_members"
+          }
+        },
+        {
+          "position": 5,
+          "name": "badges_activity",
+          "moduleData": {
+            "dataKey": "badges_activity"
+          }
+        },
+        {
+          "position": 6,
+          "name": "my_comments",
+          "moduleData": {
+            "dataKey": "my_comments"
+          }
+        },
+        {
+          "position": 1,
+          "name": "userstats",
+          "moduleData": {
+            "dataKey": "userstats"
+          }
+        },
+        {
+          "position": 1,
+          "name": "about",
+          "moduleData": {
+            "dataKey": "about"
+          }
+        },
+        {
+          "position": 1,
+          "name": "cover_deviation",
+          "moduleData": {
+            "dataKey": "cover_deviation",
+            "coverDeviation": {
+              "deviationId": 0,
+              "isMature": false
+            }
+          }
+        }
+      ]
+    }
+  },
+  "owner": {
+    "username": "Danika-Stock",
+    "usericon": "https://a.deviantart.net/avatars-big/d/a/danika-stock.jpg?9"
+  },
+  "pageExtraData": {
+    "gruserUrl": "https://www.deviantart.com/danika-stock",
+    "gruserTagline": "Stock!!!",
+    "stats": {
+      "deviations": 1245,
+      "watchers": 7236,
+      "watching": 53,
+      "pageviews": 239131,
+      "favourites": 2333
+    }
+  }
+}": 0,
                           "c": "/v1/fit/w_150,h_150,q_70,strp/\u003cprettyName\u003e-150.jpg",
                           "h": 150,
                           "w": 130,

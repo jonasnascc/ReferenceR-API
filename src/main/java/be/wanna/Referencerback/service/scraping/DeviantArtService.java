@@ -10,6 +10,7 @@ import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.MediaDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.mediatype.MediaTypeDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.mediatype.Ss;
 import be.wanna.Referencerback.dto.deviantArt.deviation.offset.OffSetDTO;
+import be.wanna.Referencerback.dto.deviantArt.deviation.offset.ResultDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.out.DeviationMediaDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.GalResultDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.GalleryInfoDTO;
@@ -131,6 +132,36 @@ public class DeviantArtService {
             bw.write(gson.toJson(galleryInfoDTO));
 
             return galleryInfoDTO;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Photo getSingleDeviation(String deviationId, String authorName){
+        CsrfResponseDTO csrfResponseDTO = getCsrfResponse(authorName);
+
+        Map<String, String> params = new HashMap<>();
+        params.put("username", authorName);
+        params.put("deviationid", deviationId);
+        params.put("include_session", "false");
+        params.put("type", "art");
+
+        params.put("csrf_token", csrfResponseDTO.csrfToken());
+        try{
+            Connection.Response  response = Jsoup.connect(DEVIATION_DETAILS_URL)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
+                    .referrer(DEVIATION_DETAILS_URL)
+                    .data(params)
+                    .method(Connection.Method.GET)
+                    .ignoreContentType(true)
+                    .cookies(csrfResponseDTO.cookies())
+                    .execute();
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            ResultDTO result = gson.fromJson(response.body(), ResultDTO.class);
+
+            return getDeviation(result.getDeviation(), 500);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -302,7 +333,13 @@ public class DeviantArtService {
     }
 
     private PhotoDTO convertDeviationToPhotoDTO(Photo deviation) {
-        return new PhotoDTO(deviation.getId(), deviation.getCode(), deviation.getUrl(), deviation.getTitle(), deviation.getMature());
+        return new PhotoDTO(
+                deviation.getId(),
+                deviation.getCode(),
+                deviation.getUrl(),
+                deviation.getTitle(),
+                deviation.getMature()
+        );
     }
 
     public DeviationMediaDTO getDeviationInfoByUrl(String url){
@@ -504,9 +541,16 @@ public class DeviantArtService {
         return new PhotoDTO(
                 deviation.getId(),
                 deviation.getCode(),
-                infoByUrl.thumbnail_url(),
+                infoByUrl.url(),
                 deviation.getTitle(),
-                deviation.getMature()
+                deviation.getMature(),
+                deviation.getType(),
+                infoByUrl.thumbnail_url(),
+                deviation.getMatureLevel(),
+                deviation.getPhotoPage(),
+                deviation.getLicense(),
+                deviation.getPublishedTime(),
+                deviation.getPage()
         );
     }
 }

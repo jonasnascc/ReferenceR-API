@@ -4,13 +4,14 @@ import be.wanna.Referencerback.dto.AlbumDTO;
 import be.wanna.Referencerback.dto.userCollection.*;
 import be.wanna.Referencerback.dto.PhotoDTO;
 import be.wanna.Referencerback.entity.Album;
+import be.wanna.Referencerback.entity.Author;
+import be.wanna.Referencerback.entity.Provider;
 import be.wanna.Referencerback.entity.UserCollection;
 import be.wanna.Referencerback.entity.photo.Photo;
+import be.wanna.Referencerback.entity.photo.PhotoType;
 import be.wanna.Referencerback.entity.user.User;
-import be.wanna.Referencerback.repository.AlbumRepository;
-import be.wanna.Referencerback.repository.CollectionRepository;
-import be.wanna.Referencerback.repository.PhotoRepository;
-import be.wanna.Referencerback.repository.UserRepository;
+import be.wanna.Referencerback.repository.*;
+import be.wanna.Referencerback.service.album.AlbumsService;
 import be.wanna.Referencerback.service.scraping.DeviantArtService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,33 +30,29 @@ public class CollectionsService {
 
     private final AlbumRepository albumRepository;
 
+    private final ProviderRepository providerRepository;
+
     private final DeviantArtService dvArtService;
 
-    @Transactional
-    public Long create(String login, CollectionDTOIn dto){
-//        if(dto.photos().isEmpty()) throw new RuntimeException("Photos must not be empty or null.");
-        User user = checkUser(login);
+    private final AuthorRepository authorRepository;
 
+    public Long create(String login, CollectionDTOIn dto){
+        User user = checkUser(login);
 
         UserCollection collection = new UserCollection(
                 dto.name(),
                 dto.description()
         );
 
-        UserCollection col = repository.save(collection);
+        user.addCollection(collection);
 
-        user.addCollection(col);
-        User savedUser = userRepository.save(user);
-
-        collection.setUser(savedUser);
-
-        return repository.save(col).getId();
+        return repository.save(collection).getId();
     }
 
     public List<CollectionDTOOut> list(String login) {
         User user = checkUser(login);
         return repository.findByUser(user).stream()
-                .map(this::convertCollection).collect(Collectors.toList());
+                .map(CollectionsService::convertCollection).collect(Collectors.toList());
     }
 
     public CollectionDTOOut find(String login, Long id){
@@ -64,148 +61,205 @@ public class CollectionsService {
 
         if(col == null) throw new RuntimeException("Collection not found.");
 
-        return  convertCollection(col);
+        return convertCollection(col);
     }
 
     @Transactional
     public Long update(String login, Long id, CollectionDTOIn dto) {
-        User user = checkUser(login);
-        UserCollection saved =  repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Collection not found."));
-
-        UserCollection collection = new UserCollection(
-                dto.name(),
-                dto.description()
-        );
-
-        if(!dto.albums().isEmpty()) {
-            dto.albums().forEach(alb -> {
-                if(!alb.photos().isEmpty()) {
-                    Optional<Album> optAlbum = albumRepository.findByCodeAndAuthorAndProvider(
-                            alb.album().code(),
-                            alb.album().author(),
-                            alb.album().provider()
-                    );
-
-                    if(optAlbum.isEmpty()) throw new RuntimeException("Album not found in database: " + alb.album().code());
-
-                    Album album = optAlbum.get();
-
-                    Set<Photo> photos = alb.photos().stream()
-                            .map(ph -> {
-                                Photo photo = convertPhotoDtoPersist(convertCollectionPhotoToPhotoDto(ph));
-                                photo.addAlbum(album);
-                                return photoRepository.save(photo);
-                            })
-                            .collect(Collectors.toSet());
-
-                    photos.forEach(album::addPhoto);
-
-                    albumRepository.save(album);
-                }
-            });
-        }
-        return repository.save(collection).getId();
+        return null;
     }
 
     public void delete(String login, Long id){
-        User user = checkUser(login);
-        UserCollection col = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Collection not found."));
 
-        repository.delete(col);
     }
 
-    @Transactional
     public void addPhotos(String login, Long id, CollectionPhotosDTO dto){
         User user = checkUser(login);
         UserCollection collection = repository.findByUserAndId(user, id);
         if(collection == null) throw  new RuntimeException("Collection not found.");
 
+        addAlbumPhotos(dto, collection);
+        repository.save(collection);
+    }
+
+
+    private void addAlbumPhotos(CollectionPhotosDTO dto, UserCollection collection) {
         if(!dto.albums().isEmpty()) {
             dto.albums().forEach(alb -> {
                 AlbumDTO albumDTO = alb.album();
 
-                if(alb.photos() != null)
-                    alb.photos().forEach(ph -> {
-                        Photo photo = convertPhotoDtoPersist(convertCollectionPhotoToPhotoDto(ph));
-
-                        Optional<Album> optAlbum = albumRepository.findByCodeAndAuthorAndProvider(
-                                albumDTO.code(),
-                                albumDTO.author(),
-                                albumDTO.provider()
-                        );
-
-                        AlbumDTO albDto = alb.album();
-                        Album album;
-                        if(optAlbum.isPresent()) album = optAlbum.get();
-                        else album = albumRepository.save(new Album(
-                                albDto.code(),
-                                albDto.name(),
-                                albDto.url(),
-                                albDto.size()
-                        ));
-
-                        album.addPhoto(photo);
-
-                        Album svdAlbum = albumRepository.save(album);
-                        photo.addAlbum(svdAlbum);
-
-                        Photo svdPhoto = photoRepository.save(photo);
-
-                        collection.addPhoto(svdPhoto);
-                    });
+                if(alb.photos() != null) {
+                    alb.photos().forEach(ph -> addPhotoFromAlbum(alb, ph, albumDTO, collection));
+                }
             });
-
         }
-
-
-        UserCollection saved = repository.save(collection);
-
-        collection.getPhotos().forEach(ph -> {
-            ph.addCollection(saved);
-        });
-
-        photoRepository.saveAll(collection.getPhotos());
     }
 
-    public List<PhotoDTO> listPhotos(String login, Long id) {
+    @Transactional
+    protected void addPhotoFromAlbum(AlbumCollectionDTOIn alb, PhotoDTO photoDto, AlbumDTO albumDTO, UserCollection collection) {
+        Photo photo = convertPhotoDto(photoDto);
+
+        AlbumDTO albDto = alb.album();
+
+        Album album = albumRepository.findByCodeAndProvider(
+                albumDTO.code(), albumDTO.provider()
+        ).orElseGet(() -> albumRepository.save(new Album(
+                albDto.code(),
+                albDto.name(),
+                albDto.url(),
+                albDto.size(),
+                authorRepository.findAuthorByNameAndProvider(albDto.author(), albDto.provider())
+                                .orElseGet(() -> authorRepository.save(new Author(
+                                        albDto.author(),
+                                        "",
+                                        providerRepository.findById(albDto.provider())
+                                                .orElseGet(() -> providerRepository.save(new Provider(albDto.provider())))
+                                ))),
+                providerRepository.findById(albDto.provider())
+                        .orElseGet(() -> providerRepository.save(new Provider(albDto.provider())))
+        )));
+
+        photo.addAlbum(album);
+
+        Photo savedPhoto = photoRepository.save(photo);
+
+        album.addPhoto(savedPhoto);
+        savedPhoto.addCollection(collection);
+
+        collection.addPhoto(savedPhoto);
+    }
+
+    public Set<AlbumDTO> listAlbums(String login, Long id) {
         User user = checkUser(login);
+
         UserCollection collection = repository.findByUserAndId(user, id);
         if(collection==null) throw new RuntimeException("Collection not found.");
 
-        Set<Photo> colPhotos = collection.getPhotos();
-        if(colPhotos.isEmpty()) return Collections.emptyList();
+        Map<String, Album> albumsMap = new HashMap<>();
 
-        Map<Integer, List<String>> pageByCodeMap = new HashMap<>();
-
-        colPhotos.forEach(ph -> {
-            if(ph.getPage() != null){
-                Integer page = ph.getPage();
-                if(!pageByCodeMap.containsKey(page)) {
-                    pageByCodeMap.put(page, new ArrayList<>());
+        collection.getPhotos().forEach(ph -> {
+            ph.getAlbums().forEach(alb -> {
+                if(!albumsMap.containsKey(alb.getCode())) {
+                    albumsMap.put(alb.getCode(), alb);
                 }
-                else {
-                    List<String> codes = pageByCodeMap.get(page);
-
-                    if(!codes.contains(ph.getCode()))
-                        codes.add(ph.getCode());
-                }
-            }
+            });
         });
 
-        List<PhotoDTO> photos = new ArrayList<>();
+        return albumsMap.values().stream().map(AlbumsService::convertDTO).collect(Collectors.toSet());
+    }
 
-        Set<Integer> mapKeys = pageByCodeMap.keySet();
+    public List<Photo> listAlbumPhotos(String login, Long collectionId, Long albumId) {
+        User user = checkUser(login);
 
-//        mapKeys.forEach(key -> {
-//            dvArtService.listAlbumPhotosByPage();
-//        });
+        UserCollection collection = repository.findByUserAndId(user, collectionId);
+        if(collection==null) throw new RuntimeException("Collection not found.");
+
+        Optional<Album> optionalAlbum = albumRepository.findById(albumId);
+        if(optionalAlbum.isEmpty()) throw new RuntimeException("Album not found.");
+
+
+        Album album = optionalAlbum.get();
+        Set<Photo> photos = album.getPhotos();
+
+        Map<Integer, Set<Photo>> photosByPages = new HashMap<>();
+
+        photos.forEach(ph -> {
+            if(!photosByPages.containsKey(ph.getPage())){
+                photosByPages.put(ph.getPage(), new HashSet<>());
+            }
+
+            photosByPages.get(ph.getPage()).add(ph);
+        });
+
+        List<Photo> photosArray = new ArrayList<>();
+
+        photosByPages.keySet().forEach(page -> {
+            photosArray.addAll(dvArtService.listAlbumPhotosByPage(
+                    album.getCode(),
+                    album.getAuthor().getName(),
+                    page,
+                    50,
+                    500
+            ));
+        });
+
+        return photosArray;
+    }
+
+    public Set<Photo> listPhotos(String login, Long id) {
+        User user = checkUser(login);
+
+        UserCollection collection = repository.findByUserAndId(user, id);
+        if(collection==null) throw new RuntimeException("Collection not found.");
+
+        Map<String, Album> albumsMap = new HashMap<>();
+
+        Map<String, Set<Integer>> albumCodeByPages = new HashMap<>();
+
+        Map<String, List<Photo>> albumCodeByPhotoMap = new HashMap<>();
+        collection.getPhotos().forEach(ph -> {
+            ph.getAlbums().forEach(alb -> {
+                if(!albumsMap.containsKey(alb.getCode())) {
+                    albumsMap.put(alb.getCode(), alb);
+                }
+                if(!albumCodeByPhotoMap.containsKey(alb.getCode())){
+                    albumCodeByPhotoMap.put(alb.getCode(), new ArrayList<>());
+                }
+                albumCodeByPhotoMap.get(alb.getCode()).add(ph);
+                if(!albumCodeByPages.containsKey(alb.getCode())){
+                    albumCodeByPages.put(alb.getCode(), new HashSet<>());
+                }
+                albumCodeByPages.get(alb.getCode()).add(ph.getPage());
+            });
+        });
+
+        Set<Photo> photos = new HashSet<>();
+        albumsMap.keySet().forEach(albCode -> {
+            Album album = albumsMap.get(albCode);
+            Set<Integer> pages = albumCodeByPages.get(albCode);
+
+            List<Photo> photosArray = new ArrayList<>();
+
+            pages.forEach(page -> {
+                photosArray.addAll(dvArtService.listAlbumPhotosByPage(
+                        album.getCode(),
+                        album.getAuthor().getName(),
+                        page,
+                        50,
+                        500
+                ));
+            });
+
+
+            photosArray.forEach(ph -> {
+                if(albumCodeByPhotoMap.get(album.getCode()).stream().anyMatch(p -> p.getCode().equals(ph.getCode()))){
+                    if(photos.stream().noneMatch(p -> p.getCode().equals(ph.getCode()))){
+                        photos.add(ph);
+                    }
+                }
+            });
+        });
 
         return photos;
     }
+//    public Set<Photo> listPhotos(String login, Long id) {
+//        User user = checkUser(login);
+//
+//        UserCollection collection = repository.findByUserAndId(user, id);
+//        if (collection == null) throw new RuntimeException("Collection not found.");
+//
+//        Set<Photo> photos = new HashSet<>();
+//        collection.getPhotos().forEach(photo -> {
+//           Album album = new ArrayList<>(photo.getAlbums()).get(0);
+//           if(album!=null) {
+//               photos.add(dvArtService.getSingleDeviation(photo.getCode(), album.getAuthor().getName()));
+//           }
+//        });
+//
+//        return photos;
+//    }
 
-    private CollectionDTOOut convertCollection(UserCollection collection) {
+    public static CollectionDTOOut convertCollection(UserCollection collection) {
         return new CollectionDTOOut(
                 collection.getId(),
                 collection.getName(),
@@ -213,47 +267,37 @@ public class CollectionsService {
         );
     }
 
-    private PhotoDTO convertCollectionPhotoToPhotoDto(UserCollectionPhotoDTO dto) {
-        return new PhotoDTO(
-                dto.code(),
-                dto.page()
-        );
-    }
 
-    @Transactional
-    protected Photo convertPhotoDtoPersist(PhotoDTO photo) {
-        return convertPhotoDto(photo, true);
-    }
-    private Photo convertPhotoDto(PhotoDTO photo) {
-        return convertPhotoDto(photo, false);
-    }
+    private Photo convertPhotoDto(PhotoDTO dto) {
+        Optional<Photo> saved = photoRepository.findPhotoByCode(dto.code());
 
-    private Photo convertPhotoDto(PhotoDTO dto, boolean persist) {
-        Photo photo = new Photo(
+        String url = formatUrl(dto.url());
+        String thumbUrl = formatUrl(dto.thumbUrl());
+        return saved.orElseGet(() -> new Photo(
                 dto.code(),
                 dto.title(),
-                dto.url(),
+                url,
                 dto.mature(),
+                dto.type(),
+                thumbUrl,
+                dto.matureLevel(),
+                dto.photoPage(),
+                dto.license(),
+                dto.publishedTime(),
                 dto.page()
-        );
-
-        return persist ? persistPhoto(photo) : photo ;
+        ));
     }
 
-    private Photo persistPhoto(Photo photo) {
-        Optional<Photo> opt = photoRepository.findPhotoByCode(photo.getCode());
+    private static String formatUrl(String text) {
+        int tokenIndex = text.indexOf("?token");
 
-        if(opt.isEmpty()) return photoRepository.save(photo);
+        String url = text;
+        if(tokenIndex!=-1) url = url.substring(0, tokenIndex);
 
-        Photo ph = opt.get();
-
-        if(ph.getPage()==null && photo.getPage()!=null) {
-            ph.setPage(photo.getPage());
-            return photoRepository.save(ph);
-        };
-
-        return ph;
+        if(url.length() > 255) url = url.substring(0, 255);
+        return url;
     }
+
 
     private User checkUser(String login){
         User user =  userRepository.findByLogin(login);

@@ -1,6 +1,5 @@
 package be.wanna.Referencerback.controller;
 
-import be.wanna.Referencerback.dto.userCollection.AlbumCollectionDTO;
 import be.wanna.Referencerback.dto.userCollection.CollectionDTOIn;
 import be.wanna.Referencerback.dto.userCollection.CollectionPhotosDTO;
 import be.wanna.Referencerback.service.authorization.TokenService;
@@ -81,6 +80,29 @@ public class CollectionController {
         service.addPhotos(login, id, dto);
 
         return ResponseEntity.ok(null);
+    }
+
+    @GetMapping("{id}/albums")
+    public ResponseEntity<?> listAlbums(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable Long id
+    ) {
+        String login = tokenService.validateToken(authorization);
+
+
+        return ResponseEntity.ok(service.listAlbums(login, id));
+    }
+
+    @GetMapping("{id}/albums/{albumId}/photos")
+    public ResponseEntity<?> listAlbumPhotos(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable Long id,
+            @PathVariable Long albumId
+    ) {
+        String login = tokenService.validateToken(authorization);
+
+
+        return ResponseEntity.ok(service.listAlbumPhotos(login, id, albumId));
     }
 
     @GetMapping("{id}/photos")

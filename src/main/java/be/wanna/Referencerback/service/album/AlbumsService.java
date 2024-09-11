@@ -220,12 +220,12 @@ public class AlbumsService {
         return favAlbum.isPresent();
     }
 
-    private AlbumDTO convertDTO(Album album) {
+    public static AlbumDTO convertDTO(Album album) {
         return convertDTO(album, false);
     }
 
 
-    private AlbumDTO convertDTO(Album album, Boolean favorited) {
+    private static AlbumDTO convertDTO(Album album, Boolean favorited) {
         return new AlbumDTO(
                 album.getId(),
                 album.getCode(),

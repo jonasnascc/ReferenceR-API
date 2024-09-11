@@ -45,11 +45,11 @@ public class Photo {
 
     private Integer page;
 
-    @ManyToMany(mappedBy = "photos")
+    @ManyToMany(mappedBy = "photos", cascade = CascadeType.PERSIST)
     @JsonIgnore
     private Set<Album> albums;
 
-    @ManyToMany
+    @ManyToMany(mappedBy = "photos", cascade = CascadeType.PERSIST)
     @JsonIgnore
     private Set<UserCollection> collections;
 
@@ -65,11 +65,27 @@ public class Photo {
         this.mature = mature;
     }
 
-    public Photo(String code, String title, String url, Boolean mature, Integer page) {
+    public Photo(String code,
+                 String title,
+                 String url,
+                 Boolean mature,
+                 PhotoType type,
+                 String thumbUrl,
+                 String matureLevel,
+                 String photoPage,
+                 String license,
+                 Date publishedTime,
+                 Integer page) {
         this.code = code;
         this.title = title;
         this.url = url;
         this.mature = mature;
+        this.type = type;
+        this.thumbUrl = thumbUrl;
+        this.matureLevel = matureLevel;
+        this.photoPage = photoPage;
+        this.license = license;
+        this.publishedTime = publishedTime;
         this.page = page;
     }
 

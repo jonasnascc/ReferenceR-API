@@ -38,7 +38,7 @@ public class Album {
     @ManyToOne
     private Provider provider;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name="albums_photos", joinColumns = {@JoinColumn(name="album_id")}, inverseJoinColumns = {@JoinColumn(name="photo_id")})
     private Set<Photo> photos;
 
@@ -61,11 +61,13 @@ public class Album {
         this.provider = provider;
     }
 
-    public Album(String code, String name, String url, Integer size) {
+    public Album(String code, String name, String url, Integer size, Author author, Provider provider) {
         this.code = code;
         this.name = name;
         this.url = url;
         this.size = size;
+        this.author = author;
+        this.provider = provider;
     }
 
     @Override

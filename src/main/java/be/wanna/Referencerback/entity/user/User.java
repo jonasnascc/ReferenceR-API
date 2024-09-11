@@ -45,7 +45,7 @@ public class User implements UserDetails {
     @OneToOne
     private Favorites favorites;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<UserCollection> collections;
 
 

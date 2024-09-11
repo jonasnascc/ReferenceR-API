@@ -40,6 +40,10 @@ public class Provider {
     @ManyToOne
     private User user;
 
+    public Provider(String name) {
+        this.name = name;
+    }
+
     public Provider(String name, String url, String loginUrl, String loginPath, User user) {
         this.name = name;
         this.url = url;
