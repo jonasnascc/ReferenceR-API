@@ -1,8 +1,7 @@
 package be.wanna.Referencerback.entity.user;
 
-import be.wanna.Referencerback.entity.Album;
 import be.wanna.Referencerback.entity.Provider;
-import be.wanna.Referencerback.entity.UserCollection;
+import be.wanna.Referencerback.entity.collections.UserCollection;
 import be.wanna.Referencerback.entity.token.Token;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -63,6 +62,7 @@ public class User implements UserDetails {
     public void addCollection(UserCollection collection) {
         if(collection == null) return;
         if(collections == null) collections = new HashSet<>();
+        collection.setUser(this);
         collections.add(collection);
     }
 

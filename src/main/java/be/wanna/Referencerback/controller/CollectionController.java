@@ -77,9 +77,7 @@ public class CollectionController {
             ) {
         String login = tokenService.validateToken(authorization);
 
-        service.addPhotos(login, id, dto);
-
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(service.addPhotos(login, id, dto));
     }
 
     @GetMapping("{id}/albums")

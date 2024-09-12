@@ -6,9 +6,9 @@ import be.wanna.Referencerback.dto.PhotoDTO;
 import be.wanna.Referencerback.entity.Album;
 import be.wanna.Referencerback.entity.Author;
 import be.wanna.Referencerback.entity.Provider;
-import be.wanna.Referencerback.entity.UserCollection;
+import be.wanna.Referencerback.entity.collections.CollectionLog;
+import be.wanna.Referencerback.entity.collections.UserCollection;
 import be.wanna.Referencerback.entity.photo.Photo;
-import be.wanna.Referencerback.entity.photo.PhotoType;
 import be.wanna.Referencerback.entity.user.User;
 import be.wanna.Referencerback.repository.*;
 import be.wanna.Referencerback.service.album.AlbumsService;
@@ -35,6 +35,8 @@ public class CollectionsService {
     private final DeviantArtService dvArtService;
 
     private final AuthorRepository authorRepository;
+
+    private final CollectionLogRepository collectionLogRepository;
 
     public Long create(String login, CollectionDTOIn dto){
         User user = checkUser(login);
@@ -73,30 +75,42 @@ public class CollectionsService {
 
     }
 
-    public void addPhotos(String login, Long id, CollectionPhotosDTO dto){
+    public Long addPhotos(String login, Long id, CollectionPhotosDTO dto){
         User user = checkUser(login);
         UserCollection collection = repository.findByUserAndId(user, id);
         if(collection == null) throw  new RuntimeException("Collection not found.");
 
-        addAlbumPhotos(dto, collection);
-        repository.save(collection);
+        CollectionLog log = new CollectionLog();
+
+        addAlbumPhotos(dto, collection, log);
+
+        if((log.getPhotos() != null&&!log.getPhotos().isEmpty()) || (log.getAlbums()!=null&&!log.getAlbums().isEmpty())){
+            log.setDate(new Date());
+            CollectionLog savedLog = collectionLogRepository.save(log);
+            savedLog.setCollection(collection);
+
+            collection.addLog(savedLog);
+        }
+
+
+        return repository.save(collection).getId();
     }
 
 
-    private void addAlbumPhotos(CollectionPhotosDTO dto, UserCollection collection) {
+    private void addAlbumPhotos(CollectionPhotosDTO dto, UserCollection collection, CollectionLog log) {
         if(!dto.albums().isEmpty()) {
             dto.albums().forEach(alb -> {
                 AlbumDTO albumDTO = alb.album();
 
                 if(alb.photos() != null) {
-                    alb.photos().forEach(ph -> addPhotoFromAlbum(alb, ph, albumDTO, collection));
+                    alb.photos().forEach(ph -> addPhotoFromAlbum(alb, ph, albumDTO, collection, log));
                 }
             });
         }
     }
 
     @Transactional
-    protected void addPhotoFromAlbum(AlbumCollectionDTOIn alb, PhotoDTO photoDto, AlbumDTO albumDTO, UserCollection collection) {
+    protected void addPhotoFromAlbum(AlbumCollectionDTOIn alb, PhotoDTO photoDto, AlbumDTO albumDTO, UserCollection collection, CollectionLog log) {
         Photo photo = convertPhotoDto(photoDto);
 
         AlbumDTO albDto = alb.album();
@@ -126,7 +140,10 @@ public class CollectionsService {
         album.addPhoto(savedPhoto);
         savedPhoto.addCollection(collection);
 
-        collection.addPhoto(savedPhoto);
+        if(collection.getPhotos().stream().noneMatch(ph -> ph.getCode().equals(savedPhoto.getCode()))){
+            collection.addPhoto(savedPhoto);
+            log.addPhoto(savedPhoto);
+        }
     }
 
     public Set<AlbumDTO> listAlbums(String login, Long id) {

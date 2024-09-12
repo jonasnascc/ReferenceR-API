@@ -1,4 +1,4 @@
-package be.wanna.Referencerback.entity;
+package be.wanna.Referencerback.entity.collections;
 
 import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.user.User;
@@ -26,6 +26,9 @@ public class UserCollection {
     private String name;
 
     private String description;
+
+    @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
+    private Set<CollectionLog> logs;
 
     @ManyToOne
     private User user;
@@ -58,6 +61,12 @@ public class UserCollection {
             photos.add(p);
         }
     }
+
+    public void addLog(CollectionLog log) {
+        if(logs == null) logs = new HashSet<>();
+        logs.add(log);
+    }
+
 
     public void removePhoto(Long id) {
         if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));
