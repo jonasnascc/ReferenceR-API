@@ -1,6 +1,7 @@
 package be.wanna.Referencerback.entity.photo;
 
 import be.wanna.Referencerback.entity.Album;
+import be.wanna.Referencerback.entity.Author;
 import be.wanna.Referencerback.entity.collections.CollectionLog;
 import be.wanna.Referencerback.entity.collections.UserCollection;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -45,6 +46,9 @@ public class Photo {
     private Date publishedTime;
 
     private Integer page;
+
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    private Author author;
 
     @ManyToMany(mappedBy = "photos", cascade = CascadeType.PERSIST)
     @JsonIgnore

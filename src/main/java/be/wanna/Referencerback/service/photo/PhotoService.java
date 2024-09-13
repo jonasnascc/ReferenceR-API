@@ -95,6 +95,6 @@ public class PhotoService {
 
         favoritesRepository.save(favorites);
 
-        return new PhotoDTO(photo.getId(), photo.getCode(), photo.getUrl(), photo.getTitle(), photo.getMature());
+        return new PhotoDTO(photo.getId(), photo.getCode(), "", photo.getUrl(), photo.getTitle(), photo.getMature());
     }
 }

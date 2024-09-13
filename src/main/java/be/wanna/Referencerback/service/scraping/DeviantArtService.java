@@ -75,7 +75,7 @@ public class DeviantArtService {
                                     id,
                                     res.name(),
                                     albumUrl,
-                                    convertDeviationToPhotoDTO(getDeviation(res.thumb(), 300)),
+                                    convertDeviationToPhotoDTO(getDeviation(res.thumb(), 300), author),
                                     author,
                                     res.size()
                             )
@@ -332,10 +332,11 @@ public class DeviantArtService {
 
     }
 
-    private PhotoDTO convertDeviationToPhotoDTO(Photo deviation) {
+    private PhotoDTO convertDeviationToPhotoDTO(Photo deviation, String author) {
         return new PhotoDTO(
                 deviation.getId(),
                 deviation.getCode(),
+                author,
                 deviation.getUrl(),
                 deviation.getTitle(),
                 deviation.getMature()
@@ -437,15 +438,15 @@ public class DeviantArtService {
         deviation.setLicense(dto.getLicense());
         deviation.setType(PhotoType.DEVIATION);
         deviation.setPage(dto.getPage());
+        deviation.setAuthor(author);
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
         Date date = null;
         try {
             date = format.parse(dto.getPublishedTime());
+            deviation.setPublishedTime(date);
         } catch (ParseException ignored) {}
-
-        deviation.setPublishedTime(date);
 
         deviation.setUrl(getDeviationDownloadUrl(dto));
         if(maxThumbsize!=null) deviation.setThumbUrl(getDeviationDownloadUrl(dto, maxThumbsize));
@@ -541,6 +542,7 @@ public class DeviantArtService {
         return new PhotoDTO(
                 deviation.getId(),
                 deviation.getCode(),
+                author,
                 infoByUrl.url(),
                 deviation.getTitle(),
                 deviation.getMature(),

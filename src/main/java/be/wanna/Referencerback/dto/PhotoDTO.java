@@ -7,6 +7,7 @@ import java.util.Date;
 public record PhotoDTO (
     Long id,
     String code,
+    String author,
     String url,
     String title,
     Boolean mature,
@@ -22,12 +23,14 @@ public record PhotoDTO (
     public PhotoDTO (
             Long id,
             String code,
+            String author,
             String url,
             String title,
             Boolean mature
     ){
         this(id,
                 code,
+                author,
                 url,
                 title,
                 mature,

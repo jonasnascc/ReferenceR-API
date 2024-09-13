@@ -38,6 +38,8 @@ public class CollectionsService {
 
     private final CollectionLogRepository collectionLogRepository;
 
+    private final AlbumsService albumsService;
+
     public Long create(String login, CollectionDTOIn dto){
         User user = checkUser(login);
 
@@ -55,6 +57,47 @@ public class CollectionsService {
         User user = checkUser(login);
         return repository.findByUser(user).stream()
                 .map(CollectionsService::convertCollection).collect(Collectors.toList());
+    }
+
+    public List<AlbumDTO> listAsAlbums(String login) {
+        User user = checkUser(login);
+        List<UserCollection> list = repository.findByUser(user);
+
+        return list.stream().map(col -> {
+            Set<Photo> photos = col.getPhotos();
+
+            PhotoDTO thumbnail = null;
+            if(!photos.isEmpty()) {
+                Photo photo = new ArrayList<>(photos).get(0);
+
+                try{
+                    thumbnail = dvArtService.getDeviationWithToken(photo, photo.getAuthor().getName());
+                }catch (Exception e) {
+                    thumbnail = new PhotoDTO(
+                            photo.getId(),
+                            photo.getCode(),
+                            "",
+                            photo.getUrl(),
+                            photo.getTitle(),
+                            photo.getMature()
+                    );
+                }
+            }
+
+
+            return new AlbumDTO(
+                    col.getId(),
+                    "collection-".concat(col.getId().toString()).concat(":").concat(user.getId()),
+                    col.getName(),
+                    "",
+                    thumbnail,
+                    user.getId(),
+                    "",
+                    photos.size(),
+                    false
+            );
+        }).collect(Collectors.toList());
+
     }
 
     public CollectionDTOOut find(String login, Long id){
@@ -134,6 +177,7 @@ public class CollectionsService {
         )));
 
         photo.addAlbum(album);
+        photo.setAuthor(album.getAuthor());
 
         Photo savedPhoto = photoRepository.save(photo);
 

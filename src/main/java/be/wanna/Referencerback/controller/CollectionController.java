@@ -4,6 +4,7 @@ import be.wanna.Referencerback.dto.userCollection.CollectionDTOIn;
 import be.wanna.Referencerback.dto.userCollection.CollectionPhotosDTO;
 import be.wanna.Referencerback.service.authorization.TokenService;
 import be.wanna.Referencerback.service.collections.CollectionsService;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +29,11 @@ public class CollectionController {
 
     @GetMapping
     public ResponseEntity<?> list(
-            @RequestHeader("Authorization") String authorization
+            @RequestHeader("Authorization") String authorization,
+            @PathParam("asAlbums") Boolean asAlbums
     ) {
         String login = tokenService.validateToken(authorization);
+        if(asAlbums) return ResponseEntity.ok(service.listAsAlbums(login));
 
         return ResponseEntity.ok(service.list(login));
     }
