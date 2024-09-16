@@ -27,7 +27,7 @@ public class UserCollection {
 
     private String description;
 
-    @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CollectionLog> logs;
 
     @ManyToOne
@@ -40,19 +40,6 @@ public class UserCollection {
     public UserCollection(String name, String description) {
         this.name = name;
         this.description = description;
-    }
-
-    public UserCollection(String name, String description, Set<Photo> photos) {
-        this.name = name;
-        this.description = description;
-        this.photos = photos;
-    }
-
-    public UserCollection(Long id, String name, String description, Set<Photo> photos) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.photos = photos;
     }
 
     public void addPhoto(Photo p) {
@@ -71,4 +58,12 @@ public class UserCollection {
     public void removePhoto(Long id) {
         if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));
     }
+
+//    @PreRemove
+//    private void removeFromDependencies(){
+//        this.user = null;
+//        if(logs!=null) logs.forEach(log -> log.setCollection(null));
+//        if(photos!=null) photos.forEach(photo -> photo.removeCollection(this.id));
+//
+//    }
 }

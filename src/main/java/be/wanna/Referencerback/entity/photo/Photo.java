@@ -124,4 +124,16 @@ public class Photo {
         }
     }
 
+    @PreRemove
+    private void removeFromDependencies (){
+        if(collections!=null) collections.forEach(col -> col.removePhoto(this.getId()));
+        this.author = null;
+        if(albums!=null) albums.forEach(album -> album.removePhoto(this.getId()));
+        if(collectionLogs!=null) collectionLogs.forEach(log -> log.removePhoto(this.getId()));
+    }
+
+    public void removeCollection(Long id) {
+        if(collections!=null) collections.removeIf(col -> col.getId().equals(id));
+
+    }
 }

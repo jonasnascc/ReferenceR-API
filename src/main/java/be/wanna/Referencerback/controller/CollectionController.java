@@ -1,5 +1,6 @@
 package be.wanna.Referencerback.controller;
 
+import be.wanna.Referencerback.dto.IdsListDTO;
 import be.wanna.Referencerback.dto.userCollection.CollectionDTOIn;
 import be.wanna.Referencerback.dto.userCollection.CollectionPhotosDTO;
 import be.wanna.Referencerback.service.authorization.TokenService;
@@ -115,5 +116,31 @@ public class CollectionController {
 
 
         return ResponseEntity.ok(service.listPhotos(login, id));
+    }
+
+    @DeleteMapping("{id}/photos/{photoId}")
+    public ResponseEntity<?> deletePhoto(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable Long id,
+            @PathVariable Long photoId
+    ) {
+        String login = tokenService.validateToken(authorization);
+
+        service.deletePhoto(login, id, photoId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("{id}/photos")
+    public ResponseEntity<?> deletePhotos(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable Long id,
+            @RequestBody IdsListDTO dto
+    ) {
+        String login = tokenService.validateToken(authorization);
+
+        service.deletePhotos(login, id, dto.ids());
+
+        return ResponseEntity.ok().build();
     }
 }

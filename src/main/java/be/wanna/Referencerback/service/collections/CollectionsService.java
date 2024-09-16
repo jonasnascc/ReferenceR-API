@@ -114,8 +114,13 @@ public class CollectionsService {
         return null;
     }
 
+    @Transactional
     public void delete(String login, Long id){
+        User user = checkUser(login);
+        UserCollection collection = repository.findByUserAndId(user, id);
+        if(collection==null) throw new RuntimeException("Collection not found.");
 
+        repository.delete(collection);
     }
 
     public Long addPhotos(String login, Long id, CollectionPhotosDTO dto){
@@ -190,6 +195,32 @@ public class CollectionsService {
         }
     }
 
+    @Transactional
+    public void deletePhoto(String login, Long collectionId, Long photoId) {
+        User user = checkUser(login);
+        deleteCollectionPhoto(collectionId, photoId, user);
+    }
+
+    @Transactional
+    public void deletePhotos(String login, Long collectionId, List<Long> photoIds) {
+        User user = checkUser(login);
+
+        photoIds.forEach(id -> {
+            deleteCollectionPhoto(collectionId, id, user);
+        });
+    }
+
+    private void deleteCollectionPhoto(Long collectionId, Long photoId, User user) {
+        UserCollection collection = repository.findByUserAndId(user, collectionId);
+        if(collection==null) throw new RuntimeException("Collection not found.");
+
+        Photo photo = collection.getPhotos().stream().filter(ph -> ph.getId().equals(photoId)).findAny()
+                .orElseThrow(() -> new RuntimeException("This photo does not exists on this Collection."));
+
+        if(photo.getCollections().size() <= 1) {
+            photoRepository.delete(photo);
+        }
+    }
     public Set<AlbumDTO> listAlbums(String login, Long id) {
         User user = checkUser(login);
 
@@ -244,11 +275,21 @@ public class CollectionsService {
                     500
             );
 
+            toAdd.forEach(ph -> {
+                Photo saved = photosByPages.get(page).stream()
+                        .filter(photo -> photo.getCode().equals(ph.getCode()))
+                        .findAny()
+                        .orElse(null);
+
+                if(saved!=null){
+                    ph.setId(saved.getId());
+                    photosArray.add(ph);
+                }
+            });
+
             Set<String> pagePhotos = new HashSet<>();
 
             photosByPages.get(page).forEach(photo -> pagePhotos.add(photo.getCode()));
-
-            photosArray.addAll(toAdd.stream().filter(photo -> pagePhotos.contains(photo.getCode())).collect(Collectors.toSet()));
         });
 
         return photosArray;

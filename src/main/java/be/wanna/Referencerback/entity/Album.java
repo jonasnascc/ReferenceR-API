@@ -70,6 +70,10 @@ public class Album {
         this.provider = provider;
     }
 
+    public void removePhoto(Long id) {
+        if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));
+    }
+
     @Override
     public String toString() {
         return "Album{" +

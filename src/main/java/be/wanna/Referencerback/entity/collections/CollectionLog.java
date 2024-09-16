@@ -41,4 +41,8 @@ public class CollectionLog {
             photos.add(p);
         }
     }
+
+    public void removePhoto(Long id) {
+        if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));
+    }
 }
