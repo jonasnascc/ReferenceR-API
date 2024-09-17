@@ -1,5 +1,7 @@
 package be.wanna.Referencerback.entity;
 
+import be.wanna.Referencerback.entity.album.Album;
+import be.wanna.Referencerback.entity.album.ScrapAlbum;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,7 +30,7 @@ public class Author{
 
     @JsonIgnore
     @OneToMany(mappedBy = "author")
-    private Set<Album> albums;
+    private Set<ScrapAlbum> albums;
 
     public Author(String name, String profileUrl, Provider provider) {
         this.name = name;

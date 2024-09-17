@@ -1,9 +1,10 @@
 package be.wanna.Referencerback.entity.photo;
 
-import be.wanna.Referencerback.entity.Album;
+import be.wanna.Referencerback.entity.album.Album;
 import be.wanna.Referencerback.entity.Author;
+import be.wanna.Referencerback.entity.album.ScrapAlbum;
 import be.wanna.Referencerback.entity.collections.CollectionLog;
-import be.wanna.Referencerback.entity.collections.UserCollection;
+import be.wanna.Referencerback.entity.album.UserCollection;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,9 +12,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -56,7 +59,7 @@ public class Photo {
 
     @ManyToMany(mappedBy = "photos")
     @JsonIgnore
-    private Set<Album> albums;
+    private Set<ScrapAlbum> scrapAlbums;
 
     @ManyToMany(mappedBy = "photos")
     @JsonIgnore
@@ -105,16 +108,14 @@ public class Photo {
         this.photoPage = photoPage;
     }
 
-
-
-    public void addAlbum(Album album){
-        if(albums == null) albums = new HashSet<>();
-        for(Album a: albums){
+    public void addAlbum(ScrapAlbum album){
+        if(scrapAlbums == null) scrapAlbums = new HashSet<>();
+        for(ScrapAlbum a: scrapAlbums){
             if(a.getId().equals(album.getId())){
                 return;
             }
         }
-        albums.add(album);
+        scrapAlbums.add(album);
     }
 
     public void addCollection(UserCollection collection) {
@@ -128,7 +129,7 @@ public class Photo {
     private void removeFromDependencies (){
         if(collections!=null) collections.forEach(col -> col.removePhoto(this.getId()));
         this.author = null;
-        if(albums!=null) albums.forEach(album -> album.removePhoto(this.getId()));
+        if(scrapAlbums !=null) scrapAlbums.forEach(album -> album.removePhoto(this.getId()));
         if(collectionLogs!=null) collectionLogs.forEach(log -> log.removePhoto(this.getId()));
     }
 

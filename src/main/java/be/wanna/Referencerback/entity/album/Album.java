@@ -1,6 +1,9 @@
-package be.wanna.Referencerback.entity;
+package be.wanna.Referencerback.entity.album;
 
+import be.wanna.Referencerback.entity.Author;
+import be.wanna.Referencerback.entity.Provider;
 import be.wanna.Referencerback.entity.photo.Photo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,16 +19,13 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Album {
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class Album {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String code;
-
     private String name;
-
-    private String url;
 
     private Integer size;
 
@@ -33,15 +33,33 @@ public class Album {
     private Photo thumbnailPhoto;
 
     @ManyToOne
-    private Author author;
-
-    @ManyToOne
     private Provider provider;
 
     @ManyToMany
-    @JoinTable(name="albums_photos", joinColumns = {@JoinColumn(name="album_id")}, inverseJoinColumns = {@JoinColumn(name="photo_id")})
+    @JsonIgnore
     private Set<Photo> photos;
 
+
+    public Album(String name) {
+        this.name = name;
+    }
+
+    public Album(String name, Integer size, Photo thumbnailPhoto, Provider provider) {
+        this.name = name;
+        this.size = size;
+        this.thumbnailPhoto = thumbnailPhoto;
+        this.provider = provider;
+    }
+
+    public Album(String name, String url, Integer size, Provider provider) {
+        this.name = name;
+        this.size = size;
+        this.provider = provider;
+    }
+
+    public void removePhoto(Long id) {
+        if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));
+    }
 
     public void addPhoto(Photo photo){
         if(photos == null) photos = new HashSet<>();
@@ -51,37 +69,11 @@ public class Album {
         photos.add(photo);
     }
 
-    public Album(String code, String name, String url, Integer size, Photo thumbnailPhoto, Author author, Provider provider) {
-        this.code = code;
-        this.name = name;
-        this.url = url;
-        this.size = size;
-        this.thumbnailPhoto = thumbnailPhoto;
-        this.author = author;
-        this.provider = provider;
-    }
-
-    public Album(String code, String name, String url, Integer size, Author author, Provider provider) {
-        this.code = code;
-        this.name = name;
-        this.url = url;
-        this.size = size;
-        this.author = author;
-        this.provider = provider;
-    }
-
-    public void removePhoto(Long id) {
-        if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));
-    }
-
     @Override
     public String toString() {
         return "Album{" +
                 "id='" + id + '\'' +
-                ", code='" + code + '\'' +
                 ", name='" + name + '\'' +
-                ", url='" + url + '\'' +
-                ", author=" + author +
                 ", provider=" + provider +
                 ", photos=" + photos +
                 '}';

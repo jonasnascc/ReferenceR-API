@@ -1,17 +1,19 @@
 package be.wanna.Referencerback.service.collections;
 
-import be.wanna.Referencerback.dto.AlbumDTO;
+import be.wanna.Referencerback.dto.album.ScrapAlbumDTO;
+import be.wanna.Referencerback.dto.album.collection.UserCollectionDTO;
 import be.wanna.Referencerback.dto.userCollection.*;
 import be.wanna.Referencerback.dto.PhotoDTO;
-import be.wanna.Referencerback.entity.Album;
+import be.wanna.Referencerback.entity.album.Album;
 import be.wanna.Referencerback.entity.Author;
 import be.wanna.Referencerback.entity.Provider;
+import be.wanna.Referencerback.entity.album.ScrapAlbum;
 import be.wanna.Referencerback.entity.collections.CollectionLog;
-import be.wanna.Referencerback.entity.collections.UserCollection;
+import be.wanna.Referencerback.entity.album.UserCollection;
 import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.user.User;
 import be.wanna.Referencerback.repository.*;
-import be.wanna.Referencerback.service.album.AlbumsService;
+import be.wanna.Referencerback.service.album.ScrapAlbumService;
 import be.wanna.Referencerback.service.scraping.DeviantArtService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +30,7 @@ public class CollectionsService {
 
     private final PhotoRepository photoRepository;
 
-    private final AlbumRepository albumRepository;
+    private final ScrapAlbumRepository scrapAlbumRepository;
 
     private final ProviderRepository providerRepository;
 
@@ -38,14 +40,15 @@ public class CollectionsService {
 
     private final CollectionLogRepository collectionLogRepository;
 
-    private final AlbumsService albumsService;
+    private final ScrapAlbumService scrapAlbumService;
 
     public Long create(String login, CollectionDTOIn dto){
         User user = checkUser(login);
 
         UserCollection collection = new UserCollection(
                 dto.name(),
-                dto.description()
+                dto.description(),
+                user
         );
 
         user.addCollection(collection);
@@ -53,54 +56,13 @@ public class CollectionsService {
         return repository.save(collection).getId();
     }
 
-    public List<CollectionDTOOut> list(String login) {
+    public List<UserCollectionDTO> list(String login) {
         User user = checkUser(login);
         return repository.findByUser(user).stream()
-                .map(CollectionsService::convertCollection).collect(Collectors.toList());
+                .map(this::convertCollection).collect(Collectors.toList());
     }
 
-    public List<AlbumDTO> listAsAlbums(String login) {
-        User user = checkUser(login);
-        List<UserCollection> list = repository.findByUser(user);
-
-        return list.stream().map(col -> {
-            Set<Photo> photos = col.getPhotos();
-
-            PhotoDTO thumbnail = null;
-            if(!photos.isEmpty()) {
-                Photo photo = new ArrayList<>(photos).get(0);
-
-                try{
-                    thumbnail = dvArtService.getDeviationWithToken(photo, photo.getAuthor().getName());
-                }catch (Exception e) {
-                    thumbnail = new PhotoDTO(
-                            photo.getId(),
-                            photo.getCode(),
-                            "",
-                            photo.getUrl(),
-                            photo.getTitle(),
-                            photo.getMature()
-                    );
-                }
-            }
-
-
-            return new AlbumDTO(
-                    col.getId(),
-                    "collection-".concat(col.getId().toString()).concat(":").concat(user.getId()),
-                    col.getName(),
-                    "",
-                    thumbnail,
-                    user.getId(),
-                    "",
-                    photos.size(),
-                    false
-            );
-        }).collect(Collectors.toList());
-
-    }
-
-    public CollectionDTOOut find(String login, Long id){
+    public UserCollectionDTO find(String login, Long id){
         User user = checkUser(login);
         UserCollection col = repository.findByUserAndId(user, id);
 
@@ -150,41 +112,28 @@ public class CollectionsService {
     }
 
 
-    private void addAlbumPhotos(CollectionPhotosDTO dto, UserCollection collection, CollectionLog log) {
+
+    @Transactional
+    protected void addAlbumPhotos(CollectionPhotosDTO dto, UserCollection collection, CollectionLog log) {
         if(!dto.albums().isEmpty()) {
             dto.albums().forEach(alb -> {
-                AlbumDTO albumDTO = alb.album();
+                ScrapAlbumDTO scrapAlbumDTO = alb.album();
 
                 if(alb.photos() != null) {
-                    alb.photos().forEach(ph -> addPhotoFromAlbum(alb, ph, albumDTO, collection, log));
+                    alb.photos().forEach(ph -> addPhotoFromAlbum(alb, ph, scrapAlbumDTO, collection, log));
                 }
             });
         }
     }
 
-    @Transactional
-    protected void addPhotoFromAlbum(AlbumCollectionDTOIn alb, PhotoDTO photoDto, AlbumDTO albumDTO, UserCollection collection, CollectionLog log) {
+    protected void addPhotoFromAlbum(AlbumCollectionDTOIn alb, PhotoDTO photoDto, ScrapAlbumDTO scrapAlbumDTO, UserCollection collection, CollectionLog log) {
         Photo photo = convertPhotoDto(photoDto);
 
-        AlbumDTO albDto = alb.album();
+        ScrapAlbumDTO albDto = alb.album();
 
-        Album album = albumRepository.findByCodeAndProvider(
-                albumDTO.code(), albumDTO.provider()
-        ).orElseGet(() -> albumRepository.save(new Album(
-                albDto.code(),
-                albDto.name(),
-                albDto.url(),
-                albDto.size(),
-                authorRepository.findAuthorByNameAndProvider(albDto.author(), albDto.provider())
-                                .orElseGet(() -> authorRepository.save(new Author(
-                                        albDto.author(),
-                                        "",
-                                        providerRepository.findById(albDto.provider())
-                                                .orElseGet(() -> providerRepository.save(new Provider(albDto.provider())))
-                                ))),
-                providerRepository.findById(albDto.provider())
-                        .orElseGet(() -> providerRepository.save(new Provider(albDto.provider())))
-        )));
+        ScrapAlbum album = scrapAlbumRepository.findByCodeAndProvider(
+                scrapAlbumDTO.code(), scrapAlbumDTO.provider()
+        ).orElseGet(() -> getScrapAlbum(albDto));
 
         photo.addAlbum(album);
         photo.setAuthor(album.getAuthor());
@@ -198,6 +147,28 @@ public class CollectionsService {
             collection.addPhoto(savedPhoto);
             log.addPhoto(savedPhoto);
         }
+    }
+
+    private ScrapAlbum getScrapAlbum(ScrapAlbumDTO albDto) {
+        Provider provider = providerRepository.findById(albDto.provider())
+            .orElseGet(() -> providerRepository.save(new Provider(albDto.provider())));
+
+        Author author = authorRepository.findAuthorByNameAndProvider(albDto.author(), albDto.provider())
+            .orElseGet(() -> authorRepository.save(new Author(
+                    albDto.author(),
+                    "",
+                    provider
+            ))
+        );
+
+        return scrapAlbumRepository.save(new ScrapAlbum(
+                albDto.code(),
+                albDto.name(),
+                albDto.url(),
+                albDto.size(),
+                provider,
+                author
+        ));
     }
 
     @Transactional
@@ -222,43 +193,43 @@ public class CollectionsService {
         Photo photo = collection.getPhotos().stream().filter(ph -> ph.getId().equals(photoId)).findAny()
                 .orElseThrow(() -> new RuntimeException("This photo does not exists on this Collection."));
 
-        Set<Album> albums = photo.getAlbums();
+        Set<ScrapAlbum> albums = photo.getScrapAlbums();
         if(photo.getCollections().size() <= 1) {
             photoRepository.delete(photo);
         }
         albums.forEach(alb -> {
-            if(alb.getPhotos().isEmpty()) albumRepository.delete(alb);
+            if(alb.getPhotos().isEmpty()) scrapAlbumRepository.delete(alb);
         });
     }
-    public Set<AlbumDTO> listAlbums(String login, Long id) {
+
+    public Set<ScrapAlbumDTO> listAlbums(String login, Long id) {
         User user = checkUser(login);
 
         UserCollection collection = repository.findByUserAndId(user, id);
         if(collection==null) throw new RuntimeException("Collection not found.");
 
-        Map<String, Album> albumsMap = new HashMap<>();
+        Map<String, ScrapAlbum> albumsMap = new HashMap<>();
 
         collection.getPhotos().forEach(ph -> {
-            ph.getAlbums().forEach(alb -> {
+            ph.getScrapAlbums().forEach(alb -> {
                 if(!albumsMap.containsKey(alb.getCode())) {
                     albumsMap.put(alb.getCode(), alb);
                 }
             });
         });
 
-        return albumsMap.values().stream().map(AlbumsService::convertDTO).collect(Collectors.toSet());
+        return albumsMap.values().stream().map(ScrapAlbumService::convertDTO).collect(Collectors.toSet());
     }
-
     public List<Photo> listAlbumPhotos(String login, Long collectionId, Long albumId) {
         User user = checkUser(login);
 
         UserCollection collection = repository.findByUserAndId(user, collectionId);
         if(collection==null) throw new RuntimeException("Collection not found.");
 
-        Optional<Album> optionalAlbum = albumRepository.findById(albumId);
+        Optional<ScrapAlbum> optionalAlbum = scrapAlbumRepository.findById(albumId);
         if(optionalAlbum.isEmpty()) throw new RuntimeException("Album not found.");
 
-        Album album = optionalAlbum.get();
+        ScrapAlbum album = optionalAlbum.get();
         Set<Photo> photos = collection.getPhotos().stream()
                 .filter(ph -> album.getPhotos().stream().anyMatch(albph -> albph.getCode().equals(ph.getCode())))
                 .collect(Collectors.toSet());
@@ -312,13 +283,14 @@ public class CollectionsService {
 
         Set<Photo> collectionPhotos = collection.getPhotos();
 
-        Map<String, Album> albumsMap = new HashMap<>();
+        Map<String, ScrapAlbum> albumsMap = new HashMap<>();
 
         Map<String, Set<Integer>> albumCodeByPages = new HashMap<>();
 
         Map<String, List<Photo>> albumCodeByPhotoMap = new HashMap<>();
+
         collectionPhotos.forEach(ph -> {
-            ph.getAlbums().forEach(alb -> {
+            ph.getScrapAlbums().forEach(alb -> {
                 if(!albumsMap.containsKey(alb.getCode())) {
                     albumsMap.put(alb.getCode(), alb);
                 }
@@ -335,7 +307,7 @@ public class CollectionsService {
 
         Set<Photo> photos = new HashSet<>();
         albumsMap.keySet().forEach(albCode -> {
-            Album album = albumsMap.get(albCode);
+            ScrapAlbum album = albumsMap.get(albCode);
             Set<Integer> pages = albumCodeByPages.get(albCode);
 
             List<Photo> photosArray = new ArrayList<>();
@@ -362,28 +334,15 @@ public class CollectionsService {
 
         return photos;
     }
-//    public Set<Photo> listPhotos(String login, Long id) {
-//        User user = checkUser(login);
-//
-//        UserCollection collection = repository.findByUserAndId(user, id);
-//        if (collection == null) throw new RuntimeException("Collection not found.");
-//
-//        Set<Photo> photos = new HashSet<>();
-//        collection.getPhotos().forEach(photo -> {
-//           Album album = new ArrayList<>(photo.getAlbums()).get(0);
-//           if(album!=null) {
-//               photos.add(dvArtService.getSingleDeviation(photo.getCode(), album.getAuthor().getName()));
-//           }
-//        });
-//
-//        return photos;
-//    }
 
-    public static CollectionDTOOut convertCollection(UserCollection collection) {
-        return new CollectionDTOOut(
+    public UserCollectionDTO convertCollection(UserCollection collection) {
+        Set<Photo> photos = collection.getPhotos();
+
+        return new UserCollectionDTO(
                 collection.getId(),
                 collection.getName(),
-                collection.getDescription()
+                collection.getDescription(),
+                photos==null ? 0 : photos.size()
         );
     }
 
@@ -423,5 +382,45 @@ public class CollectionsService {
         User user =  userRepository.findByLogin(login);
         if(user==null) throw new RuntimeException("User not found.");
         return user;
+    }
+
+    public List<ScrapAlbumDTO> listAsAlbums(String login) {
+        User user = checkUser(login);
+        List<UserCollection> list = repository.findByUser(user);
+
+        return list.stream().map(col -> {
+            Set<Photo> photos = col.getPhotos();
+
+            PhotoDTO thumbnail = null;
+            if(!photos.isEmpty()) {
+                Photo photo = new ArrayList<>(photos).get(0);
+
+                try{
+                    thumbnail = dvArtService.getDeviationWithToken(photo, photo.getAuthor().getName());
+                }catch (Exception e) {
+                    thumbnail = new PhotoDTO(
+                            photo.getId(),
+                            photo.getCode(),
+                            "",
+                            photo.getUrl(),
+                            photo.getTitle(),
+                            photo.getMature()
+                    );
+                }
+            }
+
+
+            return new ScrapAlbumDTO(
+                    col.getId(),
+                    "collection-".concat(col.getId().toString()).concat(":").concat(user.getId()),
+                    col.getName(),
+                    "",
+                    thumbnail,
+                    user.getId(),
+                    "",
+                    photos.size()
+            );
+        }).collect(Collectors.toList());
+
     }
 }

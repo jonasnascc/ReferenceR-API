@@ -1,8 +1,8 @@
 package be.wanna.Referencerback.entity.collections;
 
-import be.wanna.Referencerback.entity.Album;
+import be.wanna.Referencerback.entity.album.Album;
+import be.wanna.Referencerback.entity.album.UserCollection;
 import be.wanna.Referencerback.entity.photo.Photo;
-import be.wanna.Referencerback.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

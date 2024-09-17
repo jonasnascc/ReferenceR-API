@@ -1,12 +1,12 @@
 package be.wanna.Referencerback.dto.userCollection;
 
-import be.wanna.Referencerback.dto.AlbumDTO;
+import be.wanna.Referencerback.dto.album.ScrapAlbumDTO;
 import be.wanna.Referencerback.dto.PhotoDTO;
 
 import java.util.List;
 
 public record AlbumCollectionDTOIn(
-        AlbumDTO album,
+        ScrapAlbumDTO album,
         List<PhotoDTO> photos,
         List<PhotoDTO> exceptPhotos,
         boolean saveAsFavorite

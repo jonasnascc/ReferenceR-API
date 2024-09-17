@@ -30,11 +30,9 @@ public class CollectionController {
 
     @GetMapping
     public ResponseEntity<?> list(
-            @RequestHeader("Authorization") String authorization,
-            @PathParam("asAlbums") Boolean asAlbums
+            @RequestHeader("Authorization") String authorization
     ) {
         String login = tokenService.validateToken(authorization);
-        if(asAlbums) return ResponseEntity.ok(service.listAsAlbums(login));
 
         return ResponseEntity.ok(service.list(login));
     }

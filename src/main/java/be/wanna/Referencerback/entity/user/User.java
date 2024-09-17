@@ -1,7 +1,7 @@
 package be.wanna.Referencerback.entity.user;
 
 import be.wanna.Referencerback.entity.Provider;
-import be.wanna.Referencerback.entity.collections.UserCollection;
+import be.wanna.Referencerback.entity.album.UserCollection;
 import be.wanna.Referencerback.entity.token.Token;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -40,9 +40,6 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user")
     private List<Provider> providers;
-
-    @OneToOne
-    private Favorites favorites;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<UserCollection> collections;

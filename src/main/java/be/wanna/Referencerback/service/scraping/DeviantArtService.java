@@ -1,6 +1,6 @@
 package be.wanna.Referencerback.service.scraping;
 
-import be.wanna.Referencerback.dto.AlbumDTO;
+import be.wanna.Referencerback.dto.album.ScrapAlbumDTO;
 import be.wanna.Referencerback.dto.AuthorProfileDTO;
 import be.wanna.Referencerback.dto.CsrfResponseDTO;
 import be.wanna.Referencerback.dto.PhotoDTO;
@@ -49,18 +49,14 @@ public class DeviantArtService {
     private final String USER_GALLERY_INFO_URL = "https://www.deviantart.com/_puppy/dauserprofile/init/gallery";
 
     private final String USER_PROFILE_INFO_URL = "https://www.deviantart.com/_puppy/dauserprofile/init/about";
-    //username?
-    //csrf_token?
 
     private final String DEVIATION_DETAILS_URL = "https://www.deviantart.com/_puppy/dadeviation/init";
-    //?deviationid=1011484517&username=Nightvenjer&type=art&include_session=false&csrf_token=
 
-
-    public List<AlbumDTO> findUserAlbums(String author){
+    public List<ScrapAlbumDTO> findUserAlbums(String author){
         GalleryInfoDTO galInfo = getUserGalleryInfo(author);
         ModuleDTO moduleDTO = galInfo.gruser().page().modules().stream().filter(mod -> mod.name().equals("folders")).findAny().orElse(null);
 
-        List<AlbumDTO> albums = new ArrayList<>();
+        List<ScrapAlbumDTO> albums = new ArrayList<>();
         if(moduleDTO != null){
             List<GalResultDTO> results = moduleDTO.moduleData().folders().results();
             if(results!=null){
@@ -71,14 +67,14 @@ public class DeviantArtService {
 
                     String albumUrl = "https://www.deviantart.com/" + author + "/gallery/" + id;
                     albums.add(
-                            getAlbum(
-                                    id,
-                                    res.name(),
-                                    albumUrl,
-                                    convertDeviationToPhotoDTO(getDeviation(res.thumb(), 300), author),
-                                    author,
-                                    res.size()
-                            )
+                        getAlbum(
+                            id,
+                            res.name(),
+                            albumUrl,
+                            convertDeviationToPhotoDTO(getDeviation(res.thumb(), 300), author),
+                            author,
+                            res.size()
+                        )
                     );
                 });
             }
@@ -365,8 +361,8 @@ public class DeviantArtService {
         return albumId.replace(DEVIANTART.concat("-"), "");
     }
 
-    private AlbumDTO getAlbum(String id, String name, String url, PhotoDTO thumbnail, String author, Integer photosNum){
-        return new AlbumDTO(null ,id, name, url, thumbnail, author, DEVIANTART, photosNum, false);
+    private ScrapAlbumDTO getAlbum(String id, String name, String url, PhotoDTO thumbnail, String author, Integer photosNum){
+        return new ScrapAlbumDTO(null ,id, name, url, thumbnail, author, DEVIANTART, photosNum);
     }
 
     public void findUserAlbumsByPageDocument(String author){
