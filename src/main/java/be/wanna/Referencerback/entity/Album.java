@@ -38,7 +38,7 @@ public class Album {
     @ManyToOne
     private Provider provider;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     @JoinTable(name="albums_photos", joinColumns = {@JoinColumn(name="album_id")}, inverseJoinColumns = {@JoinColumn(name="photo_id")})
     private Set<Photo> photos;
 

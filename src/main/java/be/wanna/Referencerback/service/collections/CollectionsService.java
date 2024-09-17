@@ -120,6 +120,11 @@ public class CollectionsService {
         UserCollection collection = repository.findByUserAndId(user, id);
         if(collection==null) throw new RuntimeException("Collection not found.");
 
+        deletePhotos(login,
+                collection.getId(),
+                collection.getPhotos().stream().map(ph -> ph.getId())
+                        .collect(Collectors.toList()));
+
         repository.delete(collection);
     }
 
@@ -217,9 +222,13 @@ public class CollectionsService {
         Photo photo = collection.getPhotos().stream().filter(ph -> ph.getId().equals(photoId)).findAny()
                 .orElseThrow(() -> new RuntimeException("This photo does not exists on this Collection."));
 
+        Set<Album> albums = photo.getAlbums();
         if(photo.getCollections().size() <= 1) {
             photoRepository.delete(photo);
         }
+        albums.forEach(alb -> {
+            if(alb.getPhotos().isEmpty()) albumRepository.delete(alb);
+        });
     }
     public Set<AlbumDTO> listAlbums(String login, Long id) {
         User user = checkUser(login);

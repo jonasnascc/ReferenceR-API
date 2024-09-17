@@ -33,7 +33,7 @@ public class UserCollection {
     @ManyToOne
     private User user;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JsonIgnore
     private Set<Photo> photos;
 
@@ -59,11 +59,12 @@ public class UserCollection {
         if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));
     }
 
-//    @PreRemove
-//    private void removeFromDependencies(){
-//        this.user = null;
-//        if(logs!=null) logs.forEach(log -> log.setCollection(null));
-//        if(photos!=null) photos.forEach(photo -> photo.removeCollection(this.id));
-//
-//    }
+    @PreRemove
+    private void removeFromDependencies(){
+        this.user = null;
+        if(photos!=null) {
+            photos.forEach(photo -> photo.removeCollection(this.id));
+        }
+
+    }
 }

@@ -26,14 +26,21 @@ public class CollectionLog {
 
     private Date date;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private UserCollection collection;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     private Set<Photo> photos;
 
     @ManyToMany
     private Set<Album> albums;
+
+    @PreRemove
+    private void removeFromDependencies() {
+        if(albums!=null) albums.clear();
+        this.collection = null;
+        if(photos!=null) photos.forEach(ph -> ph.removeCollectionLog(this.id));
+    }
 
     public void addPhoto(Photo p) {
         if(photos == null) photos = new HashSet<>();
@@ -45,4 +52,5 @@ public class CollectionLog {
     public void removePhoto(Long id) {
         if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));
     }
+
 }

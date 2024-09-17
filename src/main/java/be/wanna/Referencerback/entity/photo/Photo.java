@@ -47,18 +47,18 @@ public class Photo {
 
     private Integer page;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne
     private Author author;
 
-    @ManyToMany(mappedBy = "photos", cascade = CascadeType.PERSIST)
+    @ManyToMany(mappedBy = "photos")
     @JsonIgnore
     private Set<CollectionLog> collectionLogs;
 
-    @ManyToMany(mappedBy = "photos", cascade = CascadeType.PERSIST)
+    @ManyToMany(mappedBy = "photos")
     @JsonIgnore
     private Set<Album> albums;
 
-    @ManyToMany(mappedBy = "photos", cascade = CascadeType.PERSIST)
+    @ManyToMany(mappedBy = "photos")
     @JsonIgnore
     private Set<UserCollection> collections;
 
@@ -135,5 +135,9 @@ public class Photo {
     public void removeCollection(Long id) {
         if(collections!=null) collections.removeIf(col -> col.getId().equals(id));
 
+    }
+
+    public void removeCollectionLog(Long id) {
+        if(collectionLogs!=null) collectionLogs.removeIf(col -> col.getId().equals(id));
     }
 }
