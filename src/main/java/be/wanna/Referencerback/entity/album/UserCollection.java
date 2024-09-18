@@ -32,21 +32,10 @@ public class UserCollection extends Album{
     @ManyToOne
     private User user;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JsonIgnore
-    private Set<Photo> photos;
-
     public UserCollection(String name, String description, User user) {
         super(name);
         this.description = description;
         this.user = user;
-    }
-
-    public void addPhoto(Photo p) {
-        if(photos == null) photos = new HashSet<>();
-        if(photos.stream().noneMatch(ph -> ph.getCode().equals(p.getCode()))){
-            photos.add(p);
-        }
     }
 
     public void addLog(CollectionLog log) {
@@ -54,17 +43,18 @@ public class UserCollection extends Album{
         logs.add(log);
     }
 
-
-    public void removePhoto(Long id) {
-        if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));
-    }
-
     @PreRemove
     private void removeFromDependencies(){
         this.user = null;
-        if(photos!=null) {
-            photos.forEach(photo -> photo.removeCollection(this.id));
-        }
+    }
 
+    @Override
+    public String toString() {
+        return "UserCollection{" +
+                "id=" + id +
+                ", description='" + description + '\'' +
+                ", logs=" + logs +
+                ", user=" + user +
+                "} " + super.toString();
     }
 }

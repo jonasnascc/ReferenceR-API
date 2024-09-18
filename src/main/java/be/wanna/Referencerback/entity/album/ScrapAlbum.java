@@ -35,9 +35,10 @@ public class ScrapAlbum extends Album{
                     Integer size,
                     Provider provider,
                     Author author) {
-        super(name, url, size, provider);
+        super(name, url, size);
         this.code = code;
         this.author = author;
+        this.provider = provider;
     }
 
     public ScrapAlbum(
@@ -49,10 +50,20 @@ public class ScrapAlbum extends Album{
             Author author,
             Provider provider
     ) {
-        super(name, size, thumbnailPhoto, provider);
+        super(name, size, thumbnailPhoto);
         this.code = code;
         this.url = url;
         this.author = author;
+        this.provider = provider;
     }
 
+    @Override
+    public String toString() {
+        return "ScrapAlbum{" +
+                "code='" + code + '\'' +
+                ", url='" + url + '\'' +
+                ", author=" + author +
+                ", provider=" + provider +
+                "} " + super.toString();
+    }
 }

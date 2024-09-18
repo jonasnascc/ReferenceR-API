@@ -136,15 +136,14 @@ public class CollectionsService {
         ).orElseGet(() -> getScrapAlbum(albDto));
 
         photo.addAlbum(album);
+        photo.addCollection(collection);
         photo.setAuthor(album.getAuthor());
-
         Photo savedPhoto = photoRepository.save(photo);
 
         album.addPhoto(savedPhoto);
-        savedPhoto.addCollection(collection);
+        collection.addPhoto(savedPhoto);
+        if(collection.getPhotos()!=null && collection.getPhotos().stream().noneMatch(ph -> ph.getCode().equals(savedPhoto.getCode()))){
 
-        if(collection.getPhotos().stream().noneMatch(ph -> ph.getCode().equals(savedPhoto.getCode()))){
-            collection.addPhoto(savedPhoto);
             log.addPhoto(savedPhoto);
         }
     }
@@ -210,6 +209,9 @@ public class CollectionsService {
 
         Map<String, ScrapAlbum> albumsMap = new HashMap<>();
 
+        if(collection.getPhotos() == null) return Collections.emptySet();
+
+
         collection.getPhotos().forEach(ph -> {
             ph.getScrapAlbums().forEach(alb -> {
                 if(!albumsMap.containsKey(alb.getCode())) {
@@ -218,7 +220,9 @@ public class CollectionsService {
             });
         });
 
-        return albumsMap.values().stream().map(ScrapAlbumService::convertDTO).collect(Collectors.toSet());
+        return albumsMap.values().stream()
+                .map(ScrapAlbumService::convertDTO)
+                .collect(Collectors.toSet());
     }
     public List<Photo> listAlbumPhotos(String login, Long collectionId, Long albumId) {
         User user = checkUser(login);

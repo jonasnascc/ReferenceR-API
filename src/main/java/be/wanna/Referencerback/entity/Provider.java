@@ -1,6 +1,7 @@
 package be.wanna.Referencerback.entity;
 
 import be.wanna.Referencerback.entity.album.Album;
+import be.wanna.Referencerback.entity.album.ScrapAlbum;
 import be.wanna.Referencerback.entity.connection.Connection;
 import be.wanna.Referencerback.entity.user.User;
 import jakarta.persistence.Entity;
@@ -33,7 +34,7 @@ public class Provider {
     private List<Connection> connections;
 
     @OneToMany(mappedBy = "provider")
-    private List<Album> albums;
+    private List<ScrapAlbum> albums;
 
     @OneToMany(mappedBy = "provider")
     private List<Author> authors;

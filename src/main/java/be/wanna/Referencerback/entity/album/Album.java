@@ -32,9 +32,6 @@ public abstract class Album {
     @ManyToOne
     private Photo thumbnailPhoto;
 
-    @ManyToOne
-    private Provider provider;
-
     @ManyToMany
     @JsonIgnore
     private Set<Photo> photos;
@@ -44,17 +41,15 @@ public abstract class Album {
         this.name = name;
     }
 
-    public Album(String name, Integer size, Photo thumbnailPhoto, Provider provider) {
+    public Album(String name, Integer size, Photo thumbnailPhoto) {
         this.name = name;
         this.size = size;
         this.thumbnailPhoto = thumbnailPhoto;
-        this.provider = provider;
     }
 
-    public Album(String name, String url, Integer size, Provider provider) {
+    public Album(String name, String url, Integer size) {
         this.name = name;
         this.size = size;
-        this.provider = provider;
     }
 
     public void removePhoto(Long id) {
@@ -72,9 +67,10 @@ public abstract class Album {
     @Override
     public String toString() {
         return "Album{" +
-                "id='" + id + '\'' +
+                "id=" + id +
                 ", name='" + name + '\'' +
-                ", provider=" + provider +
+                ", size=" + size +
+                ", thumbnailPhoto=" + thumbnailPhoto +
                 ", photos=" + photos +
                 '}';
     }
