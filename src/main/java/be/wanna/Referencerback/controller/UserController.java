@@ -3,6 +3,7 @@ package be.wanna.Referencerback.controller;
 import be.wanna.Referencerback.dto.TokenDTO;
 import be.wanna.Referencerback.dto.user.LoginDTO;
 import be.wanna.Referencerback.dto.user.LoginResponseDTO;
+import be.wanna.Referencerback.dto.user.SignupDTO;
 import be.wanna.Referencerback.dto.user.UserDTO;
 import be.wanna.Referencerback.entity.token.Token;
 import be.wanna.Referencerback.entity.token.TokenType;
@@ -51,18 +52,18 @@ public class UserController {
 
     @PostMapping("register")
     public ResponseEntity<?> register(
-            @RequestBody @Validated LoginDTO dto
+            @RequestBody @Validated SignupDTO dto
     ){
-        if(repository.findByLogin(dto.login()) != null) return ResponseEntity.badRequest().build();
+        if(repository.findByLogin(dto.email()) != null) return ResponseEntity.badRequest().build();
         String encryptedPassword = new BCryptPasswordEncoder().encode(dto.password());
 
-        User newUser = new User(dto.login(), encryptedPassword, UserRole.USER);
+        User newUser = new User(dto.email(), encryptedPassword, UserRole.USER);
         User savedUser = repository.save(newUser);
 
         String token = tokenService.generateToken(savedUser);
         saveUserToken(savedUser, token);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
     private void saveUserToken(User user, String token) {

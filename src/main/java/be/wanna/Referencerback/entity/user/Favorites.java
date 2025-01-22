@@ -1,6 +1,6 @@
 package be.wanna.Referencerback.entity.user;
 
-import be.wanna.Referencerback.entity.Album;
+import be.wanna.Referencerback.entity.album.Album;
 import be.wanna.Referencerback.entity.photo.Photo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity

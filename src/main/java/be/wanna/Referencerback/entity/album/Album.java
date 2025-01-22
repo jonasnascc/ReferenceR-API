@@ -1,5 +1,7 @@
-package be.wanna.Referencerback.entity;
+package be.wanna.Referencerback.entity.album;
 
+import be.wanna.Referencerback.entity.Author;
+import be.wanna.Referencerback.entity.Provider;
 import be.wanna.Referencerback.entity.photo.Photo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -51,6 +52,12 @@ public class Album {
         photos.add(photo);
     }
 
+    public Album(String code, Author author, Provider provider) {
+        this.code = code;
+        this.author = author;
+        this.provider = provider;
+    }
+
     public Album(String code, String name, String url, Integer size, Photo thumbnailPhoto, Author author, Provider provider) {
         this.code = code;
         this.name = name;
@@ -70,9 +77,6 @@ public class Album {
         this.provider = provider;
     }
 
-    public void removePhoto(Long id) {
-        if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));
-    }
 
     @Override
     public String toString() {

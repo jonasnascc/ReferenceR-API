@@ -34,7 +34,7 @@ public class CollectionController {
             @PathParam("asAlbums") Boolean asAlbums
     ) {
         String login = tokenService.validateToken(authorization);
-        if(asAlbums) return ResponseEntity.ok(service.listAsAlbums(login));
+        if(asAlbums!=null && asAlbums) return ResponseEntity.ok(service.listAsAlbums(login));
 
         return ResponseEntity.ok(service.list(login));
     }
@@ -142,5 +142,15 @@ public class CollectionController {
         service.deletePhotos(login, id, dto.ids());
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("{id}/thumbnail")
+    public ResponseEntity<?> getThumbnail(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable Long id
+    ) {
+        String login = tokenService.validateToken(authorization);
+
+        return ResponseEntity.ok(service.getCollectionThumbnail(login, id));
     }
 }

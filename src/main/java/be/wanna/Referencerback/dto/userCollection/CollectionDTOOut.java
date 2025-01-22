@@ -1,7 +1,16 @@
 package be.wanna.Referencerback.dto.userCollection;
 
-public record CollectionDTOOut(
-        Long id,
-        String name,
-        String description
-) {}
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class CollectionDTOOut {
+    private Long id;
+    private String name;
+    private String description;
+}

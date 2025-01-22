@@ -1,24 +1,26 @@
 package be.wanna.Referencerback.service.scraping;
 
-import be.wanna.Referencerback.dto.AlbumDTO;
+import be.wanna.Referencerback.dto.album.AlbumDTO;
 import be.wanna.Referencerback.dto.AuthorProfileDTO;
 import be.wanna.Referencerback.dto.CsrfResponseDTO;
-import be.wanna.Referencerback.dto.PhotoDTO;
+import be.wanna.Referencerback.dto.photo.PhotoAlbumByPageDTO;
+import be.wanna.Referencerback.dto.photo.PhotoDTO;
 import be.wanna.Referencerback.dto.deviantArt.TagDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.DeviationDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.MediaDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.mediatype.MediaTypeDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.mediaInfo.mediatype.Ss;
 import be.wanna.Referencerback.dto.deviantArt.deviation.offset.OffSetDTO;
-import be.wanna.Referencerback.dto.deviantArt.deviation.offset.ResultDTO;
 import be.wanna.Referencerback.dto.deviantArt.deviation.out.DeviationMediaDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.GalResultDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.GalleryInfoDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.ModuleDTO;
 import be.wanna.Referencerback.dto.deviantArt.gallery.ProfileInfoDTO;
 import be.wanna.Referencerback.entity.Author;
+import be.wanna.Referencerback.entity.Provider;
 import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.photo.PhotoType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.AllArgsConstructor;
@@ -27,19 +29,21 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class DeviantArtService {
+    private final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36";
+
     private final String DEVIANT_ART_URL = "https://www.deviantart.com/";
 
     private final String DEVIANTART = "deviantart";
@@ -55,10 +59,14 @@ public class DeviantArtService {
     private final String DEVIATION_DETAILS_URL = "https://www.deviantart.com/_puppy/dadeviation/init";
     //?deviationid=1011484517&username=Nightvenjer&type=art&include_session=false&csrf_token=
 
+    private final ModelMapper modelMapper;
+
+    private final ObjectMapper objectMapper;
 
     public List<AlbumDTO> findUserAlbums(String author){
         GalleryInfoDTO galInfo = getUserGalleryInfo(author);
-        ModuleDTO moduleDTO = galInfo.gruser().page().modules().stream().filter(mod -> mod.name().equals("folders")).findAny().orElse(null);
+        ModuleDTO moduleDTO = galInfo.gruser().page().modules().stream()
+                .filter(mod -> mod.name().equals("folders")).findAny().orElse(null);
 
         List<AlbumDTO> albums = new ArrayList<>();
         if(moduleDTO != null){
@@ -75,7 +83,7 @@ public class DeviantArtService {
                                     id,
                                     res.name(),
                                     albumUrl,
-                                    convertDeviationToPhotoDTO(getDeviation(res.thumb(), 300), author),
+                                    getDeviationDTOPhotoDTO(res.thumb(), id, null,300),
                                     author,
                                     res.size()
                             )
@@ -87,26 +95,23 @@ public class DeviantArtService {
         return albums;
     }
 
-    public Set<Photo> listAlbumPhotosByPage(String albumId, String authorName, int number, int limitByPage, Integer maxThumbsize){
-        return getAlbumDeviations(albumId, authorName, number, limitByPage).stream()
-                .map(dev -> getDeviation(dev, maxThumbsize)).collect(Collectors.toSet());
+    public Set<PhotoDTO> listAlbumPhotosByPage(String albumCode, String authorName, int pageNumber, int limitByPage, Integer maxThumbsize){
+        return getAlbumDeviations(albumCode, authorName, pageNumber, limitByPage).stream()
+                .map(dev -> getDeviationDTOPhotoDTO(dev, albumCode, pageNumber, maxThumbsize)).collect(Collectors.toSet());
     }
 
-    private Set<DeviationDTO> getAlbumDeviations(String albumId, String authorName, Integer page, Integer limitByPage){
+    private Set<DeviationDTO> getAlbumDeviations(String albumCode, String authorName, Integer page, Integer limitByPage){
         int offsetPg = (page - 1) * limitByPage;
 
-        OffSetDTO offset = getOffSet(offsetPg, albumId, authorName, limitByPage);
+        OffSetDTO offset = getOffSet(offsetPg, albumCode, authorName, limitByPage);
 
-        Set<DeviationDTO> setDeviations;
+        Set<DeviationDTO> deviationsSet;
         if(offset!=null){
-            setDeviations = new HashSet<>(offset.getResults());
+            deviationsSet = new HashSet<>(offset.getResults());
         }
         else return Collections.emptySet();
 
-        return setDeviations.stream().map(dev -> {
-            dev.setPage(page);
-            return dev;
-        }).collect(Collectors.toSet());
+        return deviationsSet;
     }
 
     private GalleryInfoDTO getUserGalleryInfo(String authorName){
@@ -117,9 +122,9 @@ public class DeviantArtService {
         params.put("deviations_limit", "1");
         params.put("with_subfolders", "true");
         params.put("csrf_token", csrfResponseDTO.csrfToken());
-        try(BufferedWriter bw = new BufferedWriter(new FileWriter("./testeUserProf.json"))){
+        try{
             Connection.Response  response = Jsoup.connect(USER_GALLERY_INFO_URL)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
+                    .userAgent(USER_AGENT)
                     .referrer(DEVIATION_DETAILS_URL)
                     .data(params)
                     .method(Connection.Method.GET)
@@ -129,39 +134,8 @@ public class DeviantArtService {
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             GalleryInfoDTO galleryInfoDTO = gson.fromJson(response.body(), GalleryInfoDTO.class);
-            bw.write(gson.toJson(galleryInfoDTO));
 
             return galleryInfoDTO;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public Photo getSingleDeviation(String deviationId, String authorName){
-        CsrfResponseDTO csrfResponseDTO = getCsrfResponse(authorName);
-
-        Map<String, String> params = new HashMap<>();
-        params.put("username", authorName);
-        params.put("deviationid", deviationId);
-        params.put("include_session", "false");
-        params.put("type", "art");
-
-        params.put("csrf_token", csrfResponseDTO.csrfToken());
-        try{
-            Connection.Response  response = Jsoup.connect(DEVIATION_DETAILS_URL)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
-                    .referrer(DEVIATION_DETAILS_URL)
-                    .data(params)
-                    .method(Connection.Method.GET)
-                    .ignoreContentType(true)
-                    .cookies(csrfResponseDTO.cookies())
-                    .execute();
-
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            ResultDTO result = gson.fromJson(response.body(), ResultDTO.class);
-
-            return getDeviation(result.getDeviation(), 500);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -191,9 +165,9 @@ public class DeviantArtService {
         params.put("username", authorName);
         params.put("csrf_token", csrfResponseDTO.csrfToken());
 
-        try(BufferedWriter bw = new BufferedWriter(new FileWriter("./testeUserProf.json"))){
+        try{
             Connection.Response  response = Jsoup.connect(USER_PROFILE_INFO_URL)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
+                    .userAgent(USER_AGENT)
                     .referrer(DEVIATION_DETAILS_URL)
                     .data(params)
                     .method(Connection.Method.GET)
@@ -203,7 +177,6 @@ public class DeviantArtService {
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             ProfileInfoDTO profileInfoDTO = gson.fromJson(response.body(), ProfileInfoDTO.class);
-            bw.write(gson.toJson(profileInfoDTO));
 
             return profileInfoDTO;
         } catch (Exception e) {
@@ -215,7 +188,7 @@ public class DeviantArtService {
     public List<TagDTO> getDeviationTagsByUrl(String deviationUrl) {
         try{
             Document doc = Jsoup.connect(deviationUrl)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
+                    .userAgent(USER_AGENT)
                     .method(Connection.Method.GET)
                     .ignoreContentType(true)
                     .get();
@@ -269,7 +242,7 @@ public class DeviantArtService {
             Map<String, String> offSetParams = getOffSetParams(number, albumId, authorName, limit, csrfResponseDTO.csrfToken());
 
             doc = Jsoup.connect(OFFSET_URL)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
+                    .userAgent(USER_AGENT)
                     .referrer("https://www.deviantart.com/%s/gallery".formatted(authorName))
                     .data(offSetParams)
                     .method(org.jsoup.Connection.Method.GET)
@@ -292,6 +265,7 @@ public class DeviantArtService {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         try{
+//            System.out.println(json);
             return gson.fromJson(json, OffSetDTO.class);
         } catch (Exception e) {
             return null;
@@ -301,7 +275,7 @@ public class DeviantArtService {
     private CsrfResponseDTO getCsrfResponse(String authorName) {
         try {
             org.jsoup.Connection.Response response = Jsoup.connect("https://www.deviantart.com/%s/gallery".formatted(authorName))
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
+                    .userAgent(USER_AGENT)
                     .method(org.jsoup.Connection.Method.GET)
                     .execute();
 
@@ -332,17 +306,6 @@ public class DeviantArtService {
 
     }
 
-    private PhotoDTO convertDeviationToPhotoDTO(Photo deviation, String author) {
-        return new PhotoDTO(
-                deviation.getId(),
-                deviation.getCode(),
-                author,
-                deviation.getUrl(),
-                deviation.getTitle(),
-                deviation.getMature()
-        );
-    }
-
     public DeviationMediaDTO getDeviationInfoByUrl(String url){
         try{
             Map<String, String> data = new HashMap<>();
@@ -366,92 +329,43 @@ public class DeviantArtService {
     }
 
     private AlbumDTO getAlbum(String id, String name, String url, PhotoDTO thumbnail, String author, Integer photosNum){
-        return new AlbumDTO(null ,id, name, url, thumbnail, author, DEVIANTART, photosNum, false);
+        return new AlbumDTO(null ,id, name, url, thumbnail, author, DEVIANTART, photosNum);
     }
 
-    public void findUserAlbumsByPageDocument(String author){
-//        System.out.println("Getting gallery albums...");
-        /*String url = getAuthorProfileUrl(author).concat("/gallery");
-//
-        Document doc = null;
-        try{
-            doc = Jsoup.connect(url).ignoreContentType(true).get();
-        } catch (IOException e){
-            System.out.printf("Erro na conexão com o perfil de usuário Deviantart: " + e.getMessage());
-        }
+    private PhotoDTO getDeviationDTOPhotoDTO(DeviationDTO dto, String albumCode, Integer pageNumber, Integer maxThumbsize){
+        PhotoDTO deviation = PhotoDTO.builder()
+                .code(Long.toString(dto.getDeviationId()))
+                .webPage(dto.getUrl())
+                .title(dto.getTitle())
+                .mature(dto.isMature())
+                .matureLevel(dto.getMatureLevel())
+                .license(dto.getLicense())
+                .type(PhotoType.DEVIATION)
+                .authorName(dto.getAuthor().getUsername())
+                .photoAlbumByPage(new ArrayList<>(List.of(new PhotoAlbumByPageDTO(
+                        pageNumber,
+                        albumCode
+                ))))
+                .token(dto.getMedia().getToken() != null ? dto.getMedia().getToken().get(0) : null)
+                .tokenExpireTime(dto.getMedia().getToken() != null ? Date.from(new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().plusMinutes(20).atZone(ZoneId.of("America/Sao_Paulo")).toInstant()) : null)
+                .build();
 
-        assert doc != null;
-        Elements elements = doc.getElementsByTag("section").select("._1olSA._3zHuD");
-        System.out.println(elements.size());
-
-        List<AlbumDTO> albums = new ArrayList<>();
-        for(Element e : elements){
-            String albumName = e.getElementsByTag("h2").select("._1nhB_").attr("title");
-            String albumUrl = e.getElementsByTag("a").attr("href");
-            String thumbUrl = e.getElementsByTag("div").select("._24Wda > img").attr("src");
-
-            Optional<Element> optDeviationsNum = e.getElementsByTag("span").select("._3XJHo")
-                    .stream().toList()
-                    .stream().filter(el -> el.text().toLowerCase().contains("deviations"))
-                    .findFirst();
-
-            Integer photosNum = null;
-            try{
-                String devNum = "";
-                if(optDeviationsNum.isPresent()){
-                    devNum = optDeviationsNum.get().text();
-                }
-                photosNum = Integer.parseInt(devNum.replace(" deviations", "").trim());
-            } catch (Exception ignored){}
-
-            DeviationAlbumDTO devAlbum = null;
-            AlbumDTO album = null;
-            try {
-                String albumId = albumUrl.split("/")[5];
-                album = getAlbum(albumId, albumName, albumUrl, "thumbUrl", author, photosNum);
-            } catch (Exception err) {
-                System.out.printf("Erro ao obter álbum: " + err.getMessage());
-            }
-
-            if(album != null) {
-                //album.setPhotos(getAlbumDeviations(album).stream().map(DvArtScrap::getPhoto).collect(Collectors.toList()));
-                //devAlbum.setDeviations(getAlbumDeviations(album));
-                albums.add(album);
-                System.out.println("- " + album.name() + " (" + " photos) added.");
-            }
-        }
-//
-        return albums;*/
-    }
-
-    private Photo getDeviation(DeviationDTO dto, Integer maxThumbsize){
-        Author author = new Author();
-        author.setName(dto.getAuthor().getUsername());
-        author.setProfileUrl(DEVIANT_ART_URL + author.getName());
-
-        Photo deviation = new Photo();
-        deviation.setCode(Long.toString(dto.getDeviationId()));
-        deviation.setPhotoPage(dto.getUrl());
-        deviation.setTitle(dto.getTitle());
-        deviation.setMature(dto.isMature());
-        deviation.setMatureLevel(dto.getMatureLevel());
-        deviation.setLicense(dto.getLicense());
-        deviation.setType(PhotoType.DEVIATION);
-        deviation.setPage(dto.getPage());
-        deviation.setAuthor(author);
-
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-
-        Date date = null;
-        try {
-            date = format.parse(dto.getPublishedTime());
-            deviation.setPublishedTime(date);
-        } catch (ParseException ignored) {}
+        formatPublishedTime(dto.getPublishedTime(), deviation);
 
         deviation.setUrl(getDeviationDownloadUrl(dto));
         if(maxThumbsize!=null) deviation.setThumbUrl(getDeviationDownloadUrl(dto, maxThumbsize));
 
         return deviation;
+    }
+
+    private void formatPublishedTime(String dtoPublishedTime, PhotoDTO deviation) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+
+        Date date = null;
+        try {
+            date = format.parse(dtoPublishedTime);
+            deviation.setPublishedTime(date);
+        } catch (ParseException ignored) {}
     }
 
     private String getDeviationDownloadUrl(DeviationDTO dto) {
@@ -463,14 +377,14 @@ public class DeviantArtService {
     }
 
     private String getDeviationDownloadUrlByType(MediaDTO media){
-        return getDeviationDownloadUrlIncr(media, null, true);
+        return getDeviationDownloadUrlImpl(media, null, true);
     }
 
     private String getDeviationDownloadUrlByType(MediaDTO media, int maxHeight){
-        return getDeviationDownloadUrlIncr(media,  maxHeight, false);
+        return getDeviationDownloadUrlImpl(media,  maxHeight, false);
     }
 
-    private String getDeviationDownloadUrlIncr (MediaDTO media, Integer maxHeight, boolean fullSize) {
+    private String getDeviationDownloadUrlImpl(MediaDTO media, Integer maxHeight, boolean fullSize) {
         if(media.getBaseUri()==null || (maxHeight==null && !fullSize)) return "";
 
         boolean fullHeight = false;
@@ -506,6 +420,29 @@ public class DeviantArtService {
         return media.getBaseUri().concat(view + token).replace("<prettyName>", prettyName);
     }
 
+    public String getDeviationUrl(Photo deviation) {
+        return getDeviationInfoByUrl(deviation.getWebPage()).url();
+    }
+
+    public String getDeviationToken(Photo deviation) {
+        String url = getDeviationUrl(deviation);
+        if(!url.contains("?token=")) return "";
+        String urlStartingFromToken = url.substring(url.indexOf("?token=") + 7);
+        if(!urlStartingFromToken.contains("&")) {
+            return urlStartingFromToken;
+        }
+
+        return urlStartingFromToken.substring(0, urlStartingFromToken.indexOf("&"));
+    }
+
+    public PhotoDTO getDeviationWithToken(Photo deviation, String author) {
+        deviation.setWebPage(getDeviationWebPageUrl(deviation.getUrl(), deviation.getCode(), author));
+        if(deviation.getAuthor()==null) deviation.setAuthor(new Author(author, DEVIANT_ART_URL+author, new Provider(DEVIANTART)));
+        deviation.setUrl(getDeviationUrl(deviation));
+
+        return modelMapper.map(deviation, PhotoDTO.class);
+    }
+
     private MediaTypeDTO validateType (MediaTypeDTO type) {
         if(!checkValidTypeDto(type)) {
             List<Ss> ssList = type.getSs();
@@ -530,29 +467,11 @@ public class DeviantArtService {
         return DEVIANT_ART_URL.concat(author);
     }
 
-    public PhotoDTO getDeviationWithToken(Photo deviation, String author) {
-        String url = "https://www.deviantart.com/"
+    private String getDeviationWebPageUrl(String title, String code, String author) {
+        return "https://www.deviantart.com/"
                 +author+
                 "/art/"
-                +deviation.getTitle().replace(" " , "-") + "-" + deviation.getCode();
-        deviation.setPhotoPage(url);
-
-        DeviationMediaDTO infoByUrl = getDeviationInfoByUrl(deviation.getPhotoPage());
-
-        return new PhotoDTO(
-                deviation.getId(),
-                deviation.getCode(),
-                author,
-                infoByUrl.url(),
-                deviation.getTitle(),
-                deviation.getMature(),
-                deviation.getType(),
-                infoByUrl.thumbnail_url(),
-                deviation.getMatureLevel(),
-                deviation.getPhotoPage(),
-                deviation.getLicense(),
-                deviation.getPublishedTime(),
-                deviation.getPage()
-        );
+                +title.replace(" " , "-") + "-" + code;
     }
+
 }

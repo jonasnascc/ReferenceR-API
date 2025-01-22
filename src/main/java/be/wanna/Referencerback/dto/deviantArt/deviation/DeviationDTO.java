@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 public class DeviationDTO {
 
-    private long deviationId;
+    private Long deviationId;
 
     private String title;
 
@@ -29,9 +29,6 @@ public class DeviationDTO {
     private MediaDTO media;
 
     private String publishedTime;
-
-    private Integer page;
-
 
     @Override
     public String toString() {

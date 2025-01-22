@@ -1,4 +1,6 @@
-package be.wanna.Referencerback.dto;
+package be.wanna.Referencerback.dto.album;
+
+import be.wanna.Referencerback.dto.photo.PhotoDTO;
 
 public record AlbumDTO (
         Long id,
@@ -8,6 +10,5 @@ public record AlbumDTO (
         PhotoDTO thumbnail,
         String author,
         String provider,
-        Integer size,
-        boolean favorited
+        Integer size
 ){}
