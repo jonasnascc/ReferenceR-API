@@ -17,6 +17,8 @@ import be.wanna.Referencerback.service.photo.PhotoService;
 import be.wanna.Referencerback.service.scraping.DeviantArtService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -207,6 +209,7 @@ public class CollectionsService {
         photo.addPhotoAlbumPage(phAlbumPage);
         photo.setAuthor(album.getAuthor());
 
+        photo.setSavedDate(new Date());
         Photo savedPhoto = photoRepository.save(photo);
 
         phAlbumPage.addPhoto(savedPhoto);
@@ -314,12 +317,26 @@ public class CollectionsService {
         return photos.stream().map(ph -> modelMapper.map(ph, PhotoDTO.class)).collect(Collectors.toList());
     }
 
-    public Set<PhotoDTO> listPhotos(String login, Long id) {
+    public Set<PhotoDTO> listPhotos(String login, Long id, Integer page, Integer limit) {
         User user = checkUser(login);
 
         UserCollection collection = repository.findByUserAndId(user, id);
         if(collection==null) throw new RuntimeException("Collection not found.");
 
+        if(page==null) return listPhotos(collection);
+
+        PageRequest pageable = PageRequest.of(page - 1, limit);
+        Page<Photo> photos = repository.listPhotosByCollectionId_OrderBySavedDateDesc(id, pageable);
+
+        System.out.println(photos.getTotalElements());
+        System.out.println(photos.getTotalPages());
+        System.out.println(page);
+        System.out.println(limit);
+
+        return photos.get().map(this::getPhotoDtoWithUpdatedToken).collect(Collectors.toSet());
+    }
+
+    private Set<PhotoDTO> listPhotos(UserCollection collection) {
         return collection.getPhotos().stream().map(this::getPhotoDtoWithUpdatedToken).collect(Collectors.toSet());
     }
 

@@ -45,6 +45,8 @@ public class Photo {
 
     private Date publishedTime;
 
+    private Date savedDate;
+
     @Lob
     private String token;
 

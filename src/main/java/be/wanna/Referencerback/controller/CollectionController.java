@@ -110,12 +110,13 @@ public class CollectionController {
     @GetMapping("{id}/photos")
     public ResponseEntity<?> listPhotos(
             @RequestHeader("Authorization") String authorization,
-            @PathVariable Long id
+            @PathVariable Long id,
+            @PathParam("page") Integer page,
+            @PathParam("limit") Integer limit
     ) {
         String login = tokenService.validateToken(authorization);
 
-
-        return ResponseEntity.ok(service.listPhotos(login, id));
+        return ResponseEntity.ok(service.listPhotos(login, id, page, limit));
     }
 
     @DeleteMapping("{id}/photos/{photoId}")
