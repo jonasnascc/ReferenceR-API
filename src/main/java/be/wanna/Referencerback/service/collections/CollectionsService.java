@@ -320,20 +320,22 @@ public class CollectionsService {
         UserCollection collection = repository.findByUserAndId(user, id);
         if(collection==null) throw new RuntimeException("Collection not found.");
 
-        return collection.getPhotos().stream().map(ph -> {
-            PhotoDTO dto = modelMapper.map(ph, PhotoDTO.class);
-            String token = dto.getToken();
-            if(token==null || dto.getTokenExpireTime().before(new Date())) {
-                token = deviantArtService.getDeviationToken(ph);
-                if(token!=null) {
-                    ph.setToken(token);
-                    ph.setTokenExpireTime(Date.from(new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().plusMinutes(20).atZone(ZoneId.of("America/Sao_Paulo")).toInstant()));
-                    photoRepository.save(ph);
-                }
+        return collection.getPhotos().stream().map(this::getPhotoDtoWithUpdatedToken).collect(Collectors.toSet());
+    }
+
+    private PhotoDTO getPhotoDtoWithUpdatedToken(Photo ph) {
+        PhotoDTO dto = modelMapper.map(ph, PhotoDTO.class);
+        String token = dto.getToken();
+        if(token==null || dto.getTokenExpireTime().before(new Date())) {
+            token = deviantArtService.getDeviationToken(ph);
+            if(token!=null) {
+                ph.setToken(token);
+                ph.setTokenExpireTime(Date.from(new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().plusMinutes(20).atZone(ZoneId.of("America/Sao_Paulo")).toInstant()));
+                photoRepository.save(ph);
             }
-            dto.setUrl(ph.getUrl() + (ph.getToken()!= null ? "?token=" + ph.getToken() : ""));
-            return dto;
-        }).collect(Collectors.toSet());
+        }
+        dto.setUrl(ph.getUrl() + (ph.getToken()!= null ? "?token=" + ph.getToken() : ""));
+        return dto;
     }
 
     private Photo convertPhotoDto(PhotoDTO dto) {
