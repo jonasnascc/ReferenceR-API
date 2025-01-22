@@ -323,10 +323,7 @@ public class CollectionsService {
         return collection.getPhotos().stream().map(ph -> {
             PhotoDTO dto = modelMapper.map(ph, PhotoDTO.class);
             String token = dto.getToken();
-            if(token==null || dto.getTokenExpireTime().after(new Date())) {
-                System.out.println(new Date());
-                System.out.println(dto.getTokenExpireTime());
-                System.out.println(dto.getTokenExpireTime().after(new Date()));
+            if(token==null || dto.getTokenExpireTime().before(new Date())) {
                 token = deviantArtService.getDeviationToken(ph);
                 if(token!=null) {
                     ph.setToken(token);
