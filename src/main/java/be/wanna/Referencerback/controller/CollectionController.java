@@ -119,6 +119,16 @@ public class CollectionController {
         return ResponseEntity.ok(service.listPhotos(login, id, page, limit));
     }
 
+    @GetMapping("{id}/photos/random")
+    public ResponseEntity<?> getRandomPhoto(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable Long id
+    ) {
+        String login = tokenService.validateToken(authorization);
+
+        return ResponseEntity.ok(service.getRandomCollectionPhoto(login, id));
+    }
+
     @DeleteMapping("{id}/photos/{photoId}")
     public ResponseEntity<?> deletePhoto(
             @RequestHeader("Authorization") String authorization,

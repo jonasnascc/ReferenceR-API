@@ -317,7 +317,7 @@ public class CollectionsService {
         return photos.stream().map(ph -> modelMapper.map(ph, PhotoDTO.class)).collect(Collectors.toList());
     }
 
-    public Set<PhotoDTO> listPhotos(String login, Long id, Integer page, Integer limit) {
+    public CollectionPhotosPageDTO listPhotos(String login, Long id, Integer page, Integer limit) {
         User user = checkUser(login);
 
         UserCollection collection = repository.findByUserAndId(user, id);
@@ -328,16 +328,37 @@ public class CollectionsService {
         PageRequest pageable = PageRequest.of(page - 1, limit);
         Page<Photo> photos = repository.listPhotosByCollectionId_OrderBySavedDateDesc(id, pageable);
 
-        System.out.println(photos.getTotalElements());
-        System.out.println(photos.getTotalPages());
-        System.out.println(page);
-        System.out.println(limit);
-
-        return photos.get().map(this::getPhotoDtoWithUpdatedToken).collect(Collectors.toSet());
+        return new CollectionPhotosPageDTO(
+                page,
+                photos.hasNext(),
+                photos.get().map(this::getPhotoDtoWithUpdatedToken).collect(Collectors.toSet())
+        );
     }
 
-    private Set<PhotoDTO> listPhotos(UserCollection collection) {
-        return collection.getPhotos().stream().map(this::getPhotoDtoWithUpdatedToken).collect(Collectors.toSet());
+    private CollectionPhotosPageDTO listPhotos(UserCollection collection) {
+        return new CollectionPhotosPageDTO(1, false, collection.getPhotos().stream()
+                .map(this::getPhotoDtoWithUpdatedToken)
+                .collect(Collectors.toSet())
+        );
+    }
+
+    public PhotoDTO getRandomCollectionPhoto(String login, Long collectionId) {
+        User user = checkUser(login);
+
+        UserCollection collection = repository.findByUserAndId(user, collectionId);
+        if(collection==null) throw new RuntimeException("Collection not found.");
+
+        Integer photosQuant = repository.countPhotosByCollectionId(collection.getId());
+
+        Random random = new Random();
+        random.setSeed(System.currentTimeMillis());
+
+        Integer randomPage = random.nextInt(0, photosQuant);
+
+
+        CollectionPhotosPageDTO photosPage =  listPhotos(login, collectionId, randomPage, 1);
+
+        return photosPage.photos().stream().findAny().orElse(null);
     }
 
     private PhotoDTO getPhotoDtoWithUpdatedToken(Photo ph) {

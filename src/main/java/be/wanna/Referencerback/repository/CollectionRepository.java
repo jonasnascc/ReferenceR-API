@@ -20,4 +20,7 @@ public interface CollectionRepository extends JpaRepository<UserCollection, Long
 
     @Query("SELECT p FROM UserCollection col JOIN col.photos p WHERE col.id = :collectionId ORDER BY p.savedDate DESC")
     Page<Photo> listPhotosByCollectionId_OrderBySavedDateDesc( Long collectionId, Pageable pageable);
+
+    @Query("SELECT COUNT(p) FROM UserCollection col JOIN col.photos p WHERE col.id = :collectionId")
+    Integer countPhotosByCollectionId(Long collectionId);
 }

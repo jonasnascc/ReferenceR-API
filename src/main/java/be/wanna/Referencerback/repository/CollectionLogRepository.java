@@ -10,4 +10,5 @@ import java.util.Set;
 @Repository
 public interface CollectionLogRepository extends JpaRepository<CollectionLog, Long> {
     Set<CollectionLog> findCollectionLogsByCollection_Id(Long id);
+
 }
