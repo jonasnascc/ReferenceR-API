@@ -7,8 +7,6 @@ import be.wanna.Referencerback.entity.album.Album;
 import be.wanna.Referencerback.entity.Author;
 import be.wanna.Referencerback.entity.Provider;
 import be.wanna.Referencerback.entity.photo.Photo;
-import be.wanna.Referencerback.entity.user.Favorites;
-import be.wanna.Referencerback.entity.user.User;
 import be.wanna.Referencerback.repository.*;
 import be.wanna.Referencerback.service.author.AuthorService;
 import be.wanna.Referencerback.service.scraping.DeviantArtService;
@@ -16,7 +14,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor

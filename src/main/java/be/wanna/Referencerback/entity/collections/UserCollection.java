@@ -28,9 +28,6 @@ public class UserCollection {
 
     private String description;
 
-    @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CollectionLog> logs;
-
     @ManyToOne
     private User user;
 
@@ -49,12 +46,6 @@ public class UserCollection {
             photos.add(p);
         }
     }
-
-    public void addLog(CollectionLog log) {
-        if(logs == null) logs = new HashSet<>();
-        logs.add(log);
-    }
-
 
     public void removePhoto(Long id) {
         if(photos!=null) photos.removeIf(ph -> ph.getId().equals(id));

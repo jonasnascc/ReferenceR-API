@@ -3,7 +3,6 @@ package be.wanna.Referencerback.entity.photo;
 import be.wanna.Referencerback.entity.album.Album;
 import be.wanna.Referencerback.entity.Author;
 import be.wanna.Referencerback.entity.album.AlbumPhotosByPage;
-import be.wanna.Referencerback.entity.collections.CollectionLog;
 import be.wanna.Referencerback.entity.collections.UserCollection;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -54,10 +53,6 @@ public class Photo {
 
     @ManyToOne
     private Author author;
-
-    @ManyToMany(mappedBy = "photos")
-    @JsonIgnore
-    private Set<CollectionLog> collectionLogs;
 
     @ManyToMany(mappedBy = "photos")
     @JsonIgnore
@@ -135,15 +130,10 @@ public class Photo {
         if(collections!=null) collections.forEach(col -> col.removePhoto(this.getId()));
         this.author = null;
         if(albumPhotosByPages !=null) albumPhotosByPages.forEach(album -> album.removePhoto(this.getId()));
-        if(collectionLogs!=null) collectionLogs.forEach(log -> log.removePhoto(this.getId()));
     }
 
     public void removeCollection(Long id) {
         if(collections!=null) collections.removeIf(col -> col.getId().equals(id));
 
-    }
-
-    public void removeCollectionLog(Long id) {
-        if(collectionLogs!=null) collectionLogs.removeIf(col -> col.getId().equals(id));
     }
 }

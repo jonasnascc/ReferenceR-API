@@ -7,13 +7,11 @@ import be.wanna.Referencerback.entity.album.Album;
 import be.wanna.Referencerback.entity.Author;
 import be.wanna.Referencerback.entity.Provider;
 import be.wanna.Referencerback.entity.album.AlbumPhotosByPage;
-import be.wanna.Referencerback.entity.collections.CollectionLog;
 import be.wanna.Referencerback.entity.collections.UserCollection;
 import be.wanna.Referencerback.entity.photo.Photo;
 import be.wanna.Referencerback.entity.user.User;
 import be.wanna.Referencerback.repository.*;
 import be.wanna.Referencerback.service.album.AlbumsService;
-import be.wanna.Referencerback.service.photo.PhotoService;
 import be.wanna.Referencerback.service.scraping.DeviantArtService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -41,8 +39,6 @@ public class CollectionsService {
     private final DeviantArtService dvArtService;
 
     private final AuthorRepository authorRepository;
-
-    private final CollectionLogRepository collectionLogRepository;
 
     private final PhotoAlbumPageRepository photoAlbumPageRepository;
 
@@ -80,34 +76,9 @@ public class CollectionsService {
     }
 
     private PhotoDTO getCollectionThumbnail(UserCollection col) {
-        PhotoDTO thumbnail = null;
+        Page<Photo> photos = listPhotosByPage(col.getId(), 1, 1);
 
-        Set<CollectionLog> logs = col.getLogs();
-
-        if(!logs.isEmpty()) {
-            CollectionLog lastLog = null;
-
-            for(CollectionLog log : logs) {
-                if(lastLog == null) lastLog = log;
-                else if(log.getDate().after(lastLog.getDate())) lastLog = log;
-            }
-
-            Set<Photo> logPhotos = lastLog.getPhotos();
-            if(!logPhotos.isEmpty()) {
-                Photo lastPhoto = null;
-                for(Photo photo : logPhotos) {
-                    if(lastPhoto == null) lastPhoto = photo;
-                    else if(photo.getPublishedTime().after(lastPhoto.getPublishedTime())) lastPhoto = photo;
-                }
-
-                try{
-                    thumbnail = dvArtService.getDeviationWithToken(lastPhoto, lastPhoto.getAuthor().getName());
-                }catch (Exception e) {
-                    thumbnail = modelMapper.map(lastPhoto, PhotoDTO.class);
-                }
-            }
-        }
-        return thumbnail;
+        return photos.get().map(this::getPhotoDtoWithUpdatedToken).findAny().orElse(null);
     }
 
     public List<AlbumDTO> listAsAlbums(String login) {
@@ -164,17 +135,7 @@ public class CollectionsService {
         UserCollection collection = repository.findByUserAndId(user, id);
         if(collection == null) throw  new RuntimeException("Collection not found.");
 
-        CollectionLog log = new CollectionLog();
-
-        addAlbumPhotos(dto, collection, log);
-
-        if((log.getPhotos() != null&&!log.getPhotos().isEmpty()) || (log.getAlbums()!=null&&!log.getAlbums().isEmpty())){
-            log.setDate(new Date());
-            CollectionLog savedLog = collectionLogRepository.save(log);
-            savedLog.setCollection(collection);
-
-            collection.addLog(savedLog);
-        }
+        addAlbumPhotos(dto, collection);
 
 
         return repository.save(collection).getId();
@@ -182,18 +143,18 @@ public class CollectionsService {
 
 
     @Transactional
-    protected void addAlbumPhotos(CollectionPhotosDTO dto, UserCollection collection, CollectionLog log) {
+    protected void addAlbumPhotos(CollectionPhotosDTO dto, UserCollection collection) {
         if(!dto.albums().isEmpty()) {
             dto.albums().forEach(alb -> {
                 if(alb.photos() != null) {
-                    alb.photos().forEach(ph -> addPhotoFromAlbum(alb, ph, collection, log));
+                    alb.photos().forEach(ph -> addPhotoFromAlbum(alb, ph, collection));
                 }
             });
         }
     }
 
     @Transactional
-    protected void addPhotoFromAlbum(AlbumCollectionDTOIn alb, PhotoDTO photoDto, UserCollection collection, CollectionLog log) {
+    protected void addPhotoFromAlbum(AlbumCollectionDTOIn alb, PhotoDTO photoDto, UserCollection collection) {
         Photo photo = convertPhotoDto(photoDto);
 
         AlbumDTO albDto = alb.album();
@@ -220,7 +181,6 @@ public class CollectionsService {
 
         if(collection.getPhotos().stream().noneMatch(ph -> ph.getCode().equals(savedPhoto.getCode()))){
             collection.addPhoto(savedPhoto);
-            log.addPhoto(savedPhoto);
         }
     }
 
@@ -325,14 +285,17 @@ public class CollectionsService {
 
         if(page==null) return listPhotos(collection);
 
-        PageRequest pageable = PageRequest.of(page - 1, limit);
-        Page<Photo> photos = repository.listPhotosByCollectionId_OrderBySavedDateDesc(id, pageable);
-
+        Page<Photo> photos = listPhotosByPage(id, page, limit);
         return new CollectionPhotosPageDTO(
                 page,
                 photos.hasNext(),
                 photos.get().map(this::getPhotoDtoWithUpdatedToken).collect(Collectors.toSet())
         );
+    }
+
+    private Page<Photo> listPhotosByPage(Long id, Integer page, Integer limit) {
+        PageRequest pageable = PageRequest.of(page - 1, limit);
+        return repository.listPhotosByCollectionId_OrderBySavedDateDesc(id, pageable);
     }
 
     private CollectionPhotosPageDTO listPhotos(UserCollection collection) {

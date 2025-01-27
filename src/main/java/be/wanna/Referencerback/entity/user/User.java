@@ -41,9 +41,6 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user")
     private List<Provider> providers;
 
-    @OneToOne
-    private Favorites favorites;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<UserCollection> collections;
 
