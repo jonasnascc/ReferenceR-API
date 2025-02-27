@@ -1,16 +1,14 @@
 ## ReferenceR
 
-An application designed to be a tool for artists looking for inspiration to start or finish a work of art.
+ReferenceR is an application designed to assist artists who are looking for visual references to start or enhance their creations. Through the platform, users can explore galleries published on specialized websites, such as portfolios of photographers, illustrators, and other professionals in the field.
 
-When you are creating something, you may want to follow some references, sometimes your work only ends up the way it is because you were inspired by other works.
+The goal of ReferenceR is to allow users to select images from different websites and organize their own reference galleries. The photos are obtained through scraping and displayed directly in the application, enabling the creation of customized collections for artistic use.
 
-Being an artist means studyin how things work, such as composition, light and shadow, perspective, gesture, and many other things. There are many materials on the internet that could help you with this. 
+One of the main features of the application is Chrono Shuffle, a dynamic, shuffled, and timed presentation of the images in a collection. Users can set the display time for each image before the next one appears, providing continuous and dynamic training to improve skills such as gesture drawing, light and shadow studies, and perspective.
 
-[DeviantArt](https://www.deviantart.com) is a social network where artists publish their work, whether they are beginners or established artists. It is a network that contains many photographic works by people who studied a lot to compose their works, which inspire people all over the world.
+Currently, ReferenceR extracts images exclusively from DeviantArt, a community rich in artistic content, where both professionals and amateurs share their work, offering a diverse source of inspiration.
 
-ReferenceR can initially extract photographs and images from any of the thousands of galleries on [DeviantArt](https://www.deviantart.com), and can show them to the user. After searching for an artist and opening their profile, the user can favorite their albums and see them on their collections page.
-
-Ideally, ReferenceR is not just for displaying artists' works, as [DeviantArt](https://www.deviantart.com) does. The plan is that users can create albums from different albums by different artists, and in the future, from other platforms. You might be wondering: why would this be useful?
+This project was developed as a personal learning experience, allowing me to explore various web development concepts in a practical way. ReferenceR should not be used for commercial purposes or made available to the public due to copyright issues.
 
 ### Gesture Drawing
 
